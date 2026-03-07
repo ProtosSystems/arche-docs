@@ -105,8 +105,9 @@ export function MobileNavigation() {
     <IsInsideMobileNavigationContext.Provider value={true}>
       <button
         type="button"
-        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)]"
-        aria-label="Toggle navigation"
+        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)]"
+        aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={isOpen}
         onClick={toggle}
       >
         <span className="absolute size-12 pointer-fine:hidden" />

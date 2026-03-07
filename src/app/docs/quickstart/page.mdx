@@ -21,29 +21,17 @@ Create an API key from the Arche dashboard.
 
 All requests require an authorization header:
 
-```http
-Authorization: Bearer YOUR_API_KEY
-```
+`Authorization: Bearer YOUR_API_KEY`
 
 ## Step 2 - Retrieve a Company
 
 Example request:
 
-```http
-GET https://api.arche.fi/v1/companies?ticker=AAPL
-```
+`GET https://api.arche.fi/v1/companies?ticker=AAPL`
 
 Example response:
 
-```json
-{
-  "data": {
-    "company_id": "6f6c9e1d",
-    "ticker": "AAPL",
-    "name": "Apple Inc."
-  }
-}
-```
+`{"data":{"company_id":"6f6c9e1d","ticker":"AAPL","name":"Apple Inc."}}`
 
 Save the `company_id`.
 
@@ -51,27 +39,11 @@ Save the `company_id`.
 
 Example request:
 
-```http
-GET /v1/companies/{company_id}/statements?statement_type=income
-```
+`GET /v1/companies/{company_id}/statements?statement_type=income`
 
 Example response:
 
-```json
-{
-  "page": 1,
-  "page_size": 50,
-  "total": 1,
-  "items": [
-    {
-      "statement_id": "stmt_123",
-      "statement_date": "2023-09-30",
-      "revenue": "383285000000",
-      "net_income": "96995000000"
-    }
-  ]
-}
-```
+`{"page":1,"page_size":50,"total":1,"items":[{"statement_id":"stmt_123","statement_date":"2023-09-30","revenue":"383285000000","net_income":"96995000000"}]}`
 
 Values are returned as **decimal strings** to preserve precision.
 
@@ -81,8 +53,6 @@ Arche allows queries using an `as_of` parameter.
 
 Example:
 
-```http
-GET /v1/companies/{company_id}/statements?as_of=2024-01-01
-```
+`GET /v1/companies/{company_id}/statements?as_of=2024-01-01`
 
 This returns the latest statement versions available on that date.

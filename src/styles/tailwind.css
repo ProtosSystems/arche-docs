@@ -56,7 +56,7 @@
 
   /* Docs surfaces (light defaults) */
   --docs-bg: #ffffff;
-  --docs-nav-bg: #f1f5f9;      /* branded light gray for sidebar */
+  --docs-nav-bg: #f8fafc;      /* slight gray sidebar in light mode */
   --docs-surface: #f8fafc;     /* subtle panel */
   --docs-border: #e2e8f0;
   --docs-text: #0f172a;        /* strong ink */
@@ -81,6 +81,7 @@
   html {
     background-color: var(--docs-bg);
     color: var(--docs-text);
+    font-family: 'Switzer', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -88,6 +89,15 @@
   body {
     background-color: inherit;
     color: inherit;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
   }
 
   /* Links: understated, professional */
@@ -100,6 +110,11 @@
   a:hover {
     color: var(--docs-link-hover);
     text-decoration-color: var(--docs-link-underline-hover);
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--docs-link);
+    outline-offset: 2px;
   }
 
   /* Typography plugin defaults: keep prose readable and neutral */
@@ -145,7 +160,7 @@
      ========================================================= */
   html.dark {
     --docs-bg: #0f172a;
-    --docs-nav-bg: #16213a;
+    --docs-nav-bg: #0f172a;
     --docs-surface: #0f1626;
     --docs-border: #1f2937;
     --docs-text: #f8fafc;
@@ -186,5 +201,16 @@
     --docs-link: var(--code-link);
     --docs-link-hover: var(--code-link-hover);
     --docs-border: var(--code-border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

@@ -34,7 +34,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)]"
+      className="flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)]"
       aria-label={mounted ? `Switch to ${otherTheme} theme` : 'Toggle theme'}
       disabled={!mounted}
       onClick={() => {

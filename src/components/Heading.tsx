@@ -33,11 +33,7 @@ function Eyebrow({ tag, label }: { tag?: string; label?: string }) {
       {tag && label && (
         <span className="h-0.5 w-0.5 rounded-full bg-[color:var(--docs-border)]" />
       )}
-      {label && (
-        <span className="font-mono text-xs text-[color:var(--docs-muted)]">
-          {label}
-        </span>
-      )}
+      {label && <span className="text-xs text-[color:var(--docs-muted)]">{label}</span>}
     </div>
   )
 }

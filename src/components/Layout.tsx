@@ -22,6 +22,12 @@ export function Layout({
   return (
     <SectionProvider sections={allSections[pathname] ?? []}>
       <div className="h-full lg:ml-72 xl:ml-80">
+        <a
+          href="#main-content"
+          className="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-[color:var(--docs-bg)] focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-[color:var(--docs-text)] focus:ring-2 focus:ring-[color:var(--docs-link)]"
+        >
+          Skip to main content
+        </a>
         <motion.header
           layoutScroll
           className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex"
@@ -37,7 +43,9 @@ export function Layout({
           </div>
         </motion.header>
         <div className="relative flex h-full flex-col px-4 pt-14 sm:px-6 lg:px-8">
-          <main className="flex-auto">{children}</main>
+          <main id="main-content" tabIndex={-1} className="flex-auto">
+            {children}
+          </main>
           <Footer />
         </div>
       </div>

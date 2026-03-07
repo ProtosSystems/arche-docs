@@ -8,7 +8,7 @@ export function Logo({
       {...props}
     >
       <span className="mr-[1px]">⍺</span>
-      rche
+      rche docs
     </span>
   )
 }

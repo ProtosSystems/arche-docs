@@ -278,7 +278,7 @@ const SearchInput = forwardRef<
         ref={inputRef}
         data-autofocus
         className={clsx(
-          'flex-auto appearance-none bg-transparent pl-10 text-[color:var(--docs-text)] outline-hidden placeholder:text-[color:var(--docs-muted)] focus:w-full focus:flex-none sm:text-sm [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
+          'flex-auto appearance-none bg-transparent pl-10 text-[color:var(--docs-text)] outline-none placeholder:text-[color:var(--docs-muted)] focus:w-full focus:flex-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-inset sm:text-sm [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4',
         )}
         {...inputProps}
@@ -449,14 +449,15 @@ export function Search() {
     <div className="hidden lg:block lg:max-w-md lg:flex-auto">
       <button
         type="button"
-        className="hidden h-8 w-full items-center gap-2 rounded-full bg-[color:var(--docs-surface)] pr-3 pl-2 text-sm text-[color:var(--docs-muted)] ring-1 ring-[color:var(--docs-border)] transition hover:ring-[color:var(--docs-border)] lg:flex"
+        className="hidden h-8 w-full items-center gap-2 rounded-full bg-[color:var(--docs-surface)] pr-3 pl-2 text-sm text-[color:var(--docs-muted)] ring-1 ring-[color:var(--docs-border)] transition hover:ring-[color:var(--docs-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)] lg:flex"
+        aria-keyshortcuts="Meta+K Control+K"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
         Find something...
         <kbd className="ml-auto text-2xs text-[color:var(--docs-muted)]">
-          <kbd className="font-sans">{modifierKey}</kbd>
-          <kbd className="font-sans">K</kbd>
+          <kbd>{modifierKey}</kbd>
+          <kbd>K</kbd>
         </kbd>
       </button>
       <Suspense fallback={null}>
@@ -474,7 +475,7 @@ export function MobileSearch() {
     <div className="contents lg:hidden">
       <button
         type="button"
-        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] lg:hidden"
+        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)] lg:hidden"
         aria-label="Find something..."
         {...buttonProps}
       >

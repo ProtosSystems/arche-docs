@@ -42,7 +42,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   className = clsx(
-    'inline-flex gap-0.5 justify-center overflow-hidden text-sm font-medium transition',
+    'inline-flex gap-0.5 justify-center overflow-hidden rounded-md text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)]',
     variantStyles[variant],
     className,
   )
