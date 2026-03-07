@@ -56,6 +56,7 @@
 
   /* Docs surfaces (light defaults) */
   --docs-bg: #ffffff;
+  --docs-nav-bg: #f1f5f9;      /* branded light gray for sidebar */
   --docs-surface: #f8fafc;     /* subtle panel */
   --docs-border: #e2e8f0;
   --docs-text: #0f172a;        /* strong ink */
@@ -143,7 +144,8 @@
      Dark mode overrides (must be selectors; NOT @theme)
      ========================================================= */
   html.dark {
-    --docs-bg: #0b0f1a;
+    --docs-bg: #0f172a;
+    --docs-nav-bg: #16213a;
     --docs-surface: #0f1626;
     --docs-border: #1f2937;
     --docs-text: #f8fafc;
