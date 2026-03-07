@@ -8,7 +8,7 @@ import {
 } from '@algolia/autocomplete-core'
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react'
 import clsx from 'clsx'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Fragment,
   Suspense,
@@ -21,8 +21,8 @@ import {
 } from 'react'
 import Highlighter from 'react-highlight-words'
 
+import { type SearchResult as Result } from '@/lib/search-types'
 import { navigation } from '@/components/Navigation'
-import { type Result } from '@/mdx/search.mjs'
 import { useMobileNavigationStore } from './MobileNavigation'
 
 type EmptyObject = Record<string, never>
@@ -46,6 +46,7 @@ function useAutocomplete({ onNavigate }: { onNavigate: () => void }) {
       router.push(itemUrl)
     }
 
+    resetSearchState()
     onNavigate()
   }
 
@@ -68,26 +69,49 @@ function useAutocomplete({ onNavigate }: { onNavigate: () => void }) {
       navigator: {
         navigate,
       },
-      getSources({ query }) {
-        return import('@/mdx/search.mjs').then(({ search }) => {
-          return [
-            {
-              sourceId: 'documentation',
-              getItems() {
-                return search(query, { limit: 5 })
-              },
-              getItemUrl({ item }) {
-                return item.url
-              },
-              onSelect: navigate,
+      async getSources({ query }) {
+        return [
+          {
+            sourceId: 'documentation',
+            async getItems() {
+              if (query.trim().length < 2) {
+                return []
+              }
+
+              try {
+                const params = new URLSearchParams({ q: query, limit: '8' })
+                const response = await fetch(`/api/search?${params.toString()}`, {
+                  method: 'GET',
+                })
+
+                if (!response.ok) {
+                  return []
+                }
+
+                const data = (await response.json()) as { results?: Result[] }
+                return data.results ?? []
+              } catch {
+                return []
+              }
             },
-          ]
-        })
+            getItemUrl({ item }) {
+              return item.url
+            },
+            onSelect: navigate,
+          },
+        ]
       },
     }),
   )
 
-  return { autocomplete, autocompleteState }
+  const resetSearchState = useCallback(() => {
+    autocomplete.setIsOpen(false)
+    autocomplete.setActiveItemId(null)
+    autocomplete.setCollections([])
+    autocomplete.setQuery('')
+  }, [autocomplete])
+
+  return { autocomplete, autocompleteState, resetSearchState }
 }
 
 function SearchIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -278,7 +302,7 @@ const SearchInput = forwardRef<
         ref={inputRef}
         data-autofocus
         className={clsx(
-          'flex-auto appearance-none bg-transparent pl-10 text-[color:var(--docs-text)] outline-none placeholder:text-[color:var(--docs-muted)] focus:w-full focus:flex-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-inset sm:text-sm [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
+          'flex-auto appearance-none bg-transparent pl-10 text-[color:var(--docs-text)] outline-none placeholder:text-[color:var(--docs-muted)] focus:w-full focus:flex-none focus-visible:ring-1 focus-visible:ring-[color:var(--docs-border)] focus-visible:ring-inset sm:text-sm [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden',
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4',
         )}
         {...inputProps}
@@ -323,18 +347,18 @@ function SearchDialog({
   let formRef = useRef<React.ElementRef<'form'>>(null)
   let panelRef = useRef<React.ElementRef<'div'>>(null)
   let inputRef = useRef<React.ElementRef<typeof SearchInput>>(null)
-  let { autocomplete, autocompleteState } = useAutocomplete({
+  let { autocomplete, autocompleteState, resetSearchState } = useAutocomplete({
     onNavigate() {
       onNavigate()
       setOpen(false)
     },
   })
   let pathname = usePathname()
-  let searchParams = useSearchParams()
 
   useEffect(() => {
+    resetSearchState()
     setOpen(false)
-  }, [pathname, searchParams, setOpen])
+  }, [pathname, resetSearchState, setOpen])
 
   useEffect(() => {
     if (open) {
@@ -360,9 +384,9 @@ function SearchDialog({
       open={open}
       onClose={() => {
         setOpen(false)
-        autocomplete.setQuery('')
+        resetSearchState()
       }}
-      className={clsx('fixed inset-0 z-50', className)}
+      className={clsx('fixed inset-0 z-[2147483647]', className)}
     >
       <DialogBackdrop
         transition
@@ -392,7 +416,8 @@ function SearchDialog({
                 className="border-t border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] empty:hidden"
                 {...autocomplete.getPanelProps({})}
               >
-                {autocompleteState.isOpen && (
+                {autocompleteState.isOpen &&
+                  autocompleteState.collections?.[0] && (
                   <SearchResults
                     autocomplete={autocomplete}
                     query={autocompleteState.query}
@@ -421,48 +446,140 @@ function useSearchProps() {
     },
     dialogProps: {
       open,
-      setOpen: useCallback(
-        (open: boolean) => {
-          let { width = 0, height = 0 } =
-            buttonRef.current?.getBoundingClientRect() ?? {}
-          if (!open || (width !== 0 && height !== 0)) {
-            setOpen(open)
-          }
-        },
-        [setOpen],
-      ),
+      setOpen: useCallback((open: boolean) => setOpen(open), [setOpen]),
     },
   }
 }
 
 export function Search() {
-  let [modifierKey, setModifierKey] = useState<string>()
-  let { buttonProps, dialogProps } = useSearchProps()
+  let router = useRouter()
+  let pathname = usePathname()
+  let containerRef = useRef<React.ElementRef<'div'>>(null)
+  let [query, setQuery] = useState('')
+  let [results, setResults] = useState<Result[]>([])
+  let [open, setOpen] = useState(false)
+  let [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    setModifierKey(
-      /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl ',
-    )
-  }, [])
+    setOpen(false)
+    setQuery('')
+    setResults([])
+  }, [pathname])
+
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    return () => document.removeEventListener('mousedown', onPointerDown)
+  }, [open])
+
+  useEffect(() => {
+    let q = query.trim()
+    if (q.length < 2) {
+      setResults([])
+      return
+    }
+
+    let active = true
+    setLoading(true)
+    let timeout = window.setTimeout(async () => {
+      try {
+        let params = new URLSearchParams({ q, limit: '8' })
+        let response = await fetch(`/api/search?${params.toString()}`)
+        if (!response.ok) {
+          if (active) setResults([])
+          return
+        }
+        let data = (await response.json()) as { results?: Result[] }
+        if (active) setResults(data.results ?? [])
+      } catch {
+        if (active) setResults([])
+      } finally {
+        if (active) setLoading(false)
+      }
+    }, 120)
+
+    return () => {
+      active = false
+      window.clearTimeout(timeout)
+    }
+  }, [query])
 
   return (
-    <div className="hidden lg:block lg:max-w-md lg:flex-auto">
-      <button
-        type="button"
-        className="hidden h-8 w-full items-center gap-2 rounded-full bg-[color:var(--docs-surface)] pr-3 pl-2 text-sm text-[color:var(--docs-muted)] ring-1 ring-[color:var(--docs-border)] transition hover:ring-[color:var(--docs-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)] lg:flex"
-        aria-keyshortcuts="Meta+K Control+K"
-        {...buttonProps}
-      >
+    <div
+      ref={containerRef}
+      className="relative hidden lg:block lg:w-[22rem] lg:shrink-0"
+    >
+      <div className="flex h-8 w-full items-center gap-2 rounded-full bg-[color:var(--docs-surface)] pr-3 pl-2 text-sm text-[color:var(--docs-muted)] ring-1 ring-[color:var(--docs-border)] focus-within:ring-[color:var(--docs-border)]">
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Find something...
-        <kbd className="ml-auto text-2xs text-[color:var(--docs-muted)]">
-          <kbd>{modifierKey}</kbd>
-          <kbd>K</kbd>
-        </kbd>
-      </button>
-      <Suspense fallback={null}>
-        <SearchDialog className="hidden lg:block" {...dialogProps} />
-      </Suspense>
+        <input
+          type="search"
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setOpen(true)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setOpen(false)
+            }
+            if (event.key === 'Enter' && results[0]?.url) {
+              router.push(results[0].url)
+              setOpen(false)
+              setQuery('')
+            }
+          }}
+          placeholder="Find something..."
+          className="w-full bg-transparent text-[color:var(--docs-text)] outline-none placeholder:text-[color:var(--docs-muted)]"
+        />
+      </div>
+      {open && (loading || results.length > 0 || query.trim().length >= 2) && (
+        <div className="absolute top-full right-0 left-0 z-[2147483647] mt-2 overflow-hidden rounded-lg border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] shadow-xl">
+          {loading ? (
+            <div className="px-4 py-3 text-xs text-[color:var(--docs-muted)]">
+              Searching...
+            </div>
+          ) : results.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-[color:var(--docs-muted)]">
+              No results
+            </div>
+          ) : (
+            <ul>
+              {results.map((result, index) => (
+                <li key={result.url}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push(result.url)
+                      setOpen(false)
+                      setQuery('')
+                    }}
+                    className={clsx(
+                      'w-full px-4 py-3 text-left',
+                      index > 0 && 'border-t border-[color:var(--docs-border)]',
+                      'hover:bg-[color:var(--docs-hover)]',
+                    )}
+                  >
+                    <div className="text-sm font-medium text-[color:var(--docs-text)]">
+                      {result.title}
+                    </div>
+                    {result.pageTitle && (
+                      <div className="mt-1 text-2xs text-[color:var(--docs-muted)]">
+                        {result.pageTitle}
+                      </div>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -475,7 +592,7 @@ export function MobileSearch() {
     <div className="contents lg:hidden">
       <button
         type="button"
-        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--docs-link)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)] lg:hidden"
+        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-[color:var(--docs-hover)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--docs-border)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--docs-bg)] lg:hidden"
         aria-label="Find something..."
         {...buttonProps}
       >
