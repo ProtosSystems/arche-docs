@@ -1,0 +1,23 @@
+export const metadata = {
+  title: 'Rate Limits',
+  description: 'Arche enforces request limits and returns standard rate limit headers.',
+}
+
+export const sections = [
+  { title: 'Headers', id: 'headers' },
+]
+
+# Rate Limits
+
+Arche enforces request limits to maintain system stability.
+
+## Headers
+
+```http
+X-RateLimit-Limit
+X-RateLimit-Remaining
+X-RateLimit-Reset
+Retry-After
+```
+
+When the rate limit is exceeded the API returns HTTP `429`.

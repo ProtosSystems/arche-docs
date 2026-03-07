@@ -1,0 +1,76 @@
+export const metadata = {
+  title: 'Introduction',
+  description:
+    'Arche is financial data infrastructure that preserves fundamentals exactly as known at a point in time.',
+}
+
+export const sections = [
+  { title: 'What Arche Provides', id: 'what-arche-provides' },
+  { title: 'Why Point-in-Time Data Matters', id: 'why-point-in-time-data-matters' },
+  { title: 'Core Idea', id: 'core-idea' },
+  { title: 'Who Arche Is For', id: 'who-arche-is-for' },
+]
+
+# Arche API
+
+Arche is financial data infrastructure that preserves corporate fundamentals exactly as they were known at a specific point in time.
+
+Traditional financial data vendors overwrite historical values when companies amend filings or restate financial statements. As a result, the same query run months later can return different values for the same historical period.
+
+Arche solves this problem by exposing **versioned financial statements with explicit lineage**.
+
+Every statement version is preserved. Nothing is overwritten.
+
+This allows analysts and quantitative researchers to:
+
+- reproduce historical datasets
+- detect restatements
+- eliminate look-ahead bias
+- audit financial model inputs
+
+## What Arche Provides
+
+Arche exposes normalized financial statement data sourced from SEC filings.
+
+Key capabilities:
+
+- Point-in-time financial statements
+- Full restatement lineage
+- Deterministic historical queries
+- Structured financial statement facts
+- Consistent API access to public company fundamentals
+
+## Why Point-in-Time Data Matters
+
+Financial data changes after the fact.
+
+Examples:
+
+- Companies file amended 10-Ks
+- Accounting errors trigger restatements
+- Vendors revise historical datasets
+- Data corrections propagate silently
+
+If your research uses "latest vendor data," you may unknowingly introduce **look-ahead bias**.
+
+Arche ensures the financial data returned reflects exactly what was known at a specific moment in time.
+
+## Core Idea
+
+Financial data should behave like a versioned ledger.
+
+Original filing -> Version 1  
+Restatement -> Version 2  
+Amended filing -> Version 3
+
+Arche preserves every version and exposes them through the API.
+
+## Who Arche Is For
+
+Arche is designed for:
+
+- quantitative researchers
+- financial analysts
+- systematic trading teams
+- data engineering teams building financial datasets
+- institutional investors who require reproducible data

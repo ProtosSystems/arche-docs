@@ -1,0 +1,66 @@
+export const metadata = {
+  title: 'Data Model',
+  description:
+    'Arche organizes financial data into a hierarchical structure for deterministic, versioned research.',
+}
+
+export const sections = [
+  { title: 'Company', id: 'company' },
+  { title: 'Filing', id: 'filing' },
+  { title: 'Statement', id: 'statement' },
+  { title: 'Statement Version', id: 'statement-version' },
+]
+
+# Data Model
+
+Arche organizes financial data into a hierarchical structure.
+
+Company -> Filing -> Statement -> Version -> Facts
+
+## Company
+
+Represents a public issuer.
+
+Key fields:
+
+- `company_id`
+- `ticker`
+- `name`
+- `cik`
+
+## Filing
+
+Represents an SEC filing such as:
+
+- 10-K
+- 10-Q
+- 8-K
+
+Key fields:
+
+- `accession_id`
+- `form_type`
+- `accepted_at`
+
+## Statement
+
+Normalized financial statement extracted from a filing.
+
+Examples:
+
+- income statement
+- balance sheet
+- cash flow statement
+
+## Statement Version
+
+Represents a specific version of a statement.
+
+Key fields:
+
+- `version`
+- `accepted_at`
+- `is_restated`
+- `source_filing`
+
+Versions are immutable.

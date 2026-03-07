@@ -1,0 +1,40 @@
+export const metadata = {
+  title: 'Golden Path (Secondary): Research Workflows',
+  description:
+    'Secondary golden path with supporting workflows beyond the primary restatement-drift path.',
+}
+
+export const sections = [
+  {
+    title: "Rebuild a company's financial history",
+    id: 'rebuild-a-companys-financial-history',
+  },
+  { title: 'Detect restatements', id: 'detect-restatements' },
+  { title: 'Point-in-time backtest dataset', id: 'point-in-time-backtest-dataset' },
+]
+
+# Golden Path (Secondary): Research Workflows
+
+This guide is a secondary workflow set. Start with [Golden Path: Detect Restatement Drift](/docs/guides/golden-path-restatement-drift) first.
+
+## Rebuild a company's financial history
+
+Use company + filing + statement version endpoints to reconstruct what was known on a date.
+
+Example goal:
+
+Reconstruct Apple's income statement as known on 2019-01-01
+
+## Detect restatements
+
+Compare statement versions and diff key facts.
+
+version 1 vs version 2
+
+Use this workflow to detect amended filings and changed values.
+
+## Point-in-time backtest dataset
+
+Align statement availability to your trading calendar to avoid look-ahead bias.
+
+`Fetch statements where availability_time <= market_close(timestamp)`
