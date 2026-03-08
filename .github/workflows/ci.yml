@@ -22,7 +22,7 @@ jobs:
       - name: Checkout arche_api
         uses: actions/checkout@v4
         with:
-          repository: ProtosSystems/arche_api
+          repository: ProtosSystems/arche-api
           ref: main
           token: ${{ secrets.ARCHEREPO_READ_TOKEN != '' && secrets.ARCHEREPO_READ_TOKEN || github.token }}
           path: arche_api
