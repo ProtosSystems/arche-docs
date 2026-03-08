@@ -45,14 +45,14 @@ export const Header = forwardRef<
       </div>
       <div className="flex items-center gap-5 lg:hidden">
         <MobileNavigation />
-        <CloseButton as={Link} href="/docs" aria-label="Documentation">
+        <CloseButton as={Link} href="/" aria-label="Documentation">
           <Logo />
         </CloseButton>
       </div>
       <div className="flex items-center gap-5">
         <nav className="hidden md:flex md:items-center md:gap-4">
           <Link
-            href="/docs/reference"
+            href="/reference"
             className="text-sm/5 text-[color:var(--docs-muted)] transition hover:text-[color:var(--docs-link-hover)]"
           >
             API Reference

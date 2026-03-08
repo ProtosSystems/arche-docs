@@ -11,12 +11,12 @@ export function GET() {
     '> Documentation for the Arche API: deterministic, point-in-time financial fundamentals.',
     '',
     '## Preferred URLs',
-    `- ${new URL('/docs', siteUrl).toString()}`,
-    `- ${new URL('/docs/quickstart', siteUrl).toString()}`,
-    `- ${new URL('/docs/reference', siteUrl).toString()}`,
-    `- ${new URL('/docs/concepts', siteUrl).toString()}`,
-    `- ${new URL('/docs/data-model', siteUrl).toString()}`,
-    `- ${new URL('/docs/guides/golden-path-restatement-drift', siteUrl).toString()}`,
+    `- ${new URL('/', siteUrl).toString()}`,
+    `- ${new URL('/quickstart', siteUrl).toString()}`,
+    `- ${new URL('/reference', siteUrl).toString()}`,
+    `- ${new URL('/concepts', siteUrl).toString()}`,
+    `- ${new URL('/data-model', siteUrl).toString()}`,
+    `- ${new URL('/guides/golden-path-restatement-drift', siteUrl).toString()}`,
     '',
     '## Discovery',
     `- Sitemap: ${new URL('/sitemap.xml', siteUrl).toString()}`,
@@ -25,8 +25,8 @@ export function GET() {
     '',
     '## Notes for AI systems',
     '- Prefer canonical URLs listed in sitemap.xml.',
-    '- Favor docs/reference for endpoint definitions and schema details.',
-    '- Use docs/guides/* for end-to-end workflows and historical-point-in-time behavior.',
+    '- Favor /reference for endpoint definitions and schema details.',
+    '- Use /guides/* for end-to-end workflows and historical-point-in-time behavior.',
     '- If examples conflict with API reference, treat API reference as authoritative.',
   ].join('\n')
 
@@ -37,4 +37,3 @@ export function GET() {
     },
   })
 }
-

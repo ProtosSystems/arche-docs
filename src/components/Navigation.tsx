@@ -235,10 +235,10 @@ export const navigation: Array<NavGroup> = [
   {
     title: 'Documentation',
     links: [
-      { title: 'Introduction', href: '/docs' },
-      { title: 'Quickstart', href: '/docs/quickstart' },
-      { title: 'Concepts', href: '/docs/concepts' },
-      { title: 'Data Model', href: '/docs/data-model' },
+      { title: 'Introduction', href: '/' },
+      { title: 'Quickstart', href: '/quickstart' },
+      { title: 'Concepts', href: '/concepts' },
+      { title: 'Data Model', href: '/data-model' },
     ],
   },
   {
@@ -246,21 +246,21 @@ export const navigation: Array<NavGroup> = [
     links: [
       {
         title: 'Golden Path: Detect Restatement Drift',
-        href: '/docs/guides/golden-path-restatement-drift',
+        href: '/guides/golden-path-restatement-drift',
       },
       {
         title: 'Golden Path (Secondary): Research Workflows',
-        href: '/docs/examples',
+        href: '/examples',
       },
     ],
   },
   {
     title: 'Reference',
     links: [
-      { title: 'API Reference', href: '/docs/reference' },
-      { title: 'Rate Limits', href: '/docs/rate-limits' },
-      { title: 'Errors', href: '/docs/errors' },
-      { title: 'Changelog', href: '/docs/changelog' },
+      { title: 'API Reference', href: '/reference' },
+      { title: 'Rate Limits', href: '/rate-limits' },
+      { title: 'Errors', href: '/errors' },
+      { title: 'Changelog', href: '/changelog' },
     ],
   },
 ]
@@ -269,7 +269,7 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
   return (
     <nav {...props}>
       <ul role="list">
-        <TopLevelNavItem href="/docs">Documentation</TopLevelNavItem>
+        <TopLevelNavItem href="/">Documentation</TopLevelNavItem>
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}

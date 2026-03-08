@@ -35,7 +35,7 @@ export function Layout({
         >
           <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-[color:var(--docs-border)] lg:bg-[color:var(--docs-nav-bg)] lg:px-6 lg:pt-4 lg:pb-8 xl:w-80">
             <div className="hidden lg:flex">
-              <Link href="/docs" aria-label="Documentation">
+              <Link href="/" aria-label="Documentation">
                 <Logo />
               </Link>
             </div>

@@ -10,7 +10,10 @@ type Entry = {
 }
 
 function toRouteFromPageFilename(filename: string): string {
-  return '/' + filename.replace(/(^|\/)page\.(mdx|tsx)$/, '')
+  const internal = '/' + filename.replace(/(^|\/)page\.(mdx|tsx)$/, '')
+  if (internal === '/docs') return '/'
+  if (internal.startsWith('/docs/')) return internal.replace(/^\/docs/, '')
+  return internal
 }
 
 function getDocEntries(): Array<Entry> {
@@ -19,14 +22,14 @@ function getDocEntries(): Array<Entry> {
   })
   const routes = files
     .map(toRouteFromPageFilename)
-    .filter((path) => path !== '/docs/layout')
+    .filter((path) => path !== '/layout')
 
   return routes
     .filter((path, index) => routes.indexOf(path) === index)
     .map((path) => ({
       path,
       changeFrequency: path.includes('/guides/') ? 'monthly' : 'weekly',
-      priority: path === '/docs' ? 1 : 0.8,
+      priority: path === '/' ? 1 : 0.8,
     }))
 }
 
@@ -35,7 +38,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
   const entries: Array<Entry> = [
-    { path: '/', changeFrequency: 'weekly', priority: 0.4 },
     ...getDocEntries(),
     { path: '/llms.txt', changeFrequency: 'monthly', priority: 0.6 },
     { path: '/llms-full.txt', changeFrequency: 'monthly', priority: 0.5 },
@@ -48,4 +50,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: entry.priority,
   }))
 }
-

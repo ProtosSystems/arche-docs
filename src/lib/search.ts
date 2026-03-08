@@ -82,6 +82,12 @@ function parseSections(mdx: string): Section[] {
 }
 
 function buildIndex() {
+  function toPublicPath(pathname: string): string {
+    if (pathname === '/docs') return '/'
+    if (pathname.startsWith('/docs/')) return pathname.replace(/^\/docs/, '')
+    return pathname
+  }
+
   const appDir = path.resolve('./src/app')
   const files = glob.sync('docs/**/*.mdx', { cwd: appDir })
 
@@ -100,7 +106,7 @@ function buildIndex() {
   })
 
   for (const file of files) {
-    const pageUrl = '/' + file.replace(/(^|\/)page\.mdx$/, '')
+    const pageUrl = toPublicPath('/' + file.replace(/(^|\/)page\.mdx$/, ''))
     const mdx = fs.readFileSync(path.join(appDir, file), 'utf8')
     const sections = parseSections(mdx)
 
@@ -133,8 +139,8 @@ function buildIndex() {
     }
 
     index.add({
-      id: '/docs/reference#__overview',
-      url: '/docs/reference',
+      id: '/reference#__overview',
+      url: '/reference',
       title: 'API Reference',
       pageTitle: 'API Reference',
       content: [openApi.info?.title, openApi.info?.description]
@@ -154,7 +160,7 @@ function buildIndex() {
         const operationLabel = `${verb} ${apiPath}`
         const slugBase = op.operationId ?? `${method}-${apiPath}`
         const slug = normalize(slugBase).replace(/\s+/g, '-')
-        const url = `/docs/reference#${slug}`
+        const url = `/reference#${slug}`
         const tags = (op.tags ?? []).filter(Boolean)
         const tagText = tags
           .flatMap((tag) => [tag, tagDescriptions.get(tag) ?? ''])
@@ -261,19 +267,19 @@ function scoreDoc(doc: IndexedDoc, normalizedQuery: string, queryTerms: string[]
   if (pageTitle.includes(normalizedQuery)) score += 24
   if (url.includes(normalizedQuery)) score += 18
 
-  if (isApiReferenceIntent(normalizedQuery) && url.includes('/docs/reference')) {
+  if (isApiReferenceIntent(normalizedQuery) && url.includes('/reference')) {
     score += 140
   }
-  if (isRateLimitIntent(normalizedQuery) && url.includes('/docs/rate-limits')) {
+  if (isRateLimitIntent(normalizedQuery) && url.includes('/rate-limits')) {
     score += 120
   }
   if (
     isRestatementIntent(normalizedQuery) &&
-    url.includes('/docs/guides/golden-path-restatement-drift')
+    url.includes('/guides/golden-path-restatement-drift')
   ) {
     score += 120
   }
-  if (isQuickstartIntent(normalizedQuery) && url.includes('/docs/quickstart')) {
+  if (isQuickstartIntent(normalizedQuery) && url.includes('/quickstart')) {
     score += 100
   }
 
