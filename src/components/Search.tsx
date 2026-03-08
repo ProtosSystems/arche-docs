@@ -455,6 +455,8 @@ export function Search() {
   let router = useRouter()
   let pathname = usePathname()
   let containerRef = useRef<React.ElementRef<'div'>>(null)
+  let inputId = useId()
+  let resultsId = useId()
   let [query, setQuery] = useState('')
   let [results, setResults] = useState<Result[]>([])
   let [open, setOpen] = useState(false)
@@ -514,9 +516,13 @@ export function Search() {
       ref={containerRef}
       className="relative hidden lg:block lg:w-[22rem] lg:shrink-0"
     >
+      <label htmlFor={inputId} className="sr-only">
+        Search docs
+      </label>
       <div className="flex h-8 w-full items-center gap-2 rounded-full bg-[color:var(--docs-surface)] pr-3 pl-2 text-sm text-[color:var(--docs-muted)] ring-1 ring-[color:var(--docs-border)] focus-within:ring-[color:var(--docs-border)]">
         <SearchIcon className="h-5 w-5 stroke-current" />
         <input
+          id={inputId}
           type="search"
           value={query}
           onFocus={() => setOpen(true)}
@@ -535,17 +541,32 @@ export function Search() {
             }
           }}
           placeholder="Find something..."
+          aria-label="Search docs"
+          aria-expanded={open}
+          aria-controls={resultsId}
+          aria-autocomplete="list"
           className="w-full bg-transparent text-[color:var(--docs-text)] outline-none placeholder:text-[color:var(--docs-muted)]"
         />
       </div>
       {open && (loading || results.length > 0 || query.trim().length >= 2) && (
-        <div className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] shadow-xl">
+        <div
+          id={resultsId}
+          className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] shadow-xl"
+        >
           {loading ? (
-            <div className="px-4 py-3 text-xs text-[color:var(--docs-muted)]">
+            <div
+              role="status"
+              aria-live="polite"
+              className="px-4 py-3 text-xs text-[color:var(--docs-muted)]"
+            >
               Searching...
             </div>
           ) : results.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-[color:var(--docs-muted)]">
+            <div
+              role="status"
+              aria-live="polite"
+              className="px-4 py-3 text-xs text-[color:var(--docs-muted)]"
+            >
               No results
             </div>
           ) : (
