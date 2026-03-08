@@ -1,7 +1,10 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import {
+  AUTH_COOKIE_NAME,
+  getExpectedAuthToken,
+} from './src/lib/access-auth'
 
-const AUTH_COOKIE = 'site_auth'
 const PUBLIC_ASSET_PATHS = new Set([
   '/favicon.ico',
   '/site.webmanifest',
@@ -16,10 +19,6 @@ const PUBLIC_ASSET_PATHS = new Set([
   '/llms-full.txt',
 ])
 const UNPROTECTED_PATHS = new Set(['/access', '/api/access-login'])
-
-function getAuthToken(username: string, password: string): string {
-  return btoa(`${username}:${password}`)
-}
 
 function isPublicFile(pathname: string): boolean {
   return /\.[a-zA-Z0-9]+$/.test(pathname)
@@ -44,7 +43,7 @@ function toDocsPath(pathname: string): string {
   return pathname === '/' ? '/docs' : `/docs${pathname}`
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   if (pathname === '/docs' || pathname.startsWith('/docs/')) {
@@ -53,17 +52,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  const configuredUsername = process.env.SITE_USERNAME?.trim()
-  const configuredPassword = process.env.SITE_PASSWORD?.trim()
+  const expectedToken = await getExpectedAuthToken()
 
   if (
-    configuredUsername &&
-    configuredPassword &&
+    expectedToken &&
     !UNPROTECTED_PATHS.has(pathname) &&
     !isInternalPath(pathname)
   ) {
-    const requestToken = request.cookies.get(AUTH_COOKIE)?.value
-    const expectedToken = getAuthToken(configuredUsername, configuredPassword)
+    const requestToken = request.cookies.get(AUTH_COOKIE_NAME)?.value
 
     if (requestToken !== expectedToken) {
       const accessUrl = new URL('/access', request.url)
