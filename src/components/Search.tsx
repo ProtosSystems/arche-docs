@@ -386,7 +386,7 @@ function SearchDialog({
         setOpen(false)
         resetSearchState()
       }}
-      className={clsx('fixed inset-0 z-[2147483647]', className)}
+      className={clsx('fixed inset-0 z-50', className)}
     >
       <DialogBackdrop
         transition
@@ -539,7 +539,7 @@ export function Search() {
         />
       </div>
       {open && (loading || results.length > 0 || query.trim().length >= 2) && (
-        <div className="absolute top-full right-0 left-0 z-[2147483647] mt-2 overflow-hidden rounded-lg border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] shadow-xl">
+        <div className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] shadow-xl">
           {loading ? (
             <div className="px-4 py-3 text-xs text-[color:var(--docs-muted)]">
               Searching...

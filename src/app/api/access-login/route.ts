@@ -11,8 +11,8 @@ function getAuthToken(username: string, password: string): string {
 }
 
 export async function POST(request: Request) {
-  const configuredUsername = process.env.SITE_USERNAME
-  const configuredPassword = process.env.SITE_PASSWORD
+  const configuredUsername = process.env.SITE_USERNAME?.trim()
+  const configuredPassword = process.env.SITE_PASSWORD?.trim()
 
   if (!configuredUsername || !configuredPassword) {
     return NextResponse.json({ ok: true, redirectTo: '/' }, { status: 200 })
@@ -56,4 +56,3 @@ export async function POST(request: Request) {
 
   return response
 }
-

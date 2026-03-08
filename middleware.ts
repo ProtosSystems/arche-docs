@@ -9,10 +9,15 @@ function getAuthToken(username: string, password: string): string {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const configuredUsername = process.env.SITE_USERNAME
-  const configuredPassword = process.env.SITE_PASSWORD
+  const configuredUsername = process.env.SITE_USERNAME?.trim()
+  const configuredPassword = process.env.SITE_PASSWORD?.trim()
 
   if (!configuredUsername || !configuredPassword) {
+    if (pathname === '/') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/docs'
+      return NextResponse.rewrite(url)
+    }
     return NextResponse.next()
   }
 
@@ -30,6 +35,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(accessUrl)
   }
 
+  if (pathname === '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/docs'
+    return NextResponse.rewrite(url)
+  }
+
   return NextResponse.next()
 }
 
@@ -38,4 +49,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|site.webmanifest|apple-touch-icon.png|android-chrome-192x192.png|android-chrome-512x512.png|favicon-16x16.png|favicon-32x32.png).*)',
   ],
 }
-

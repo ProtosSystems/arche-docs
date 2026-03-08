@@ -31,24 +31,6 @@ export function ApiReference({ openApiUrl }: { openApiUrl: string }) {
     }
   }
 
-  function neutralizeScalarTopOverlays(root: ParentNode) {
-    const candidates = root.querySelectorAll<HTMLElement>(
-      '[class*="scalar"], [id*="scalar"], [data-scalar], [class*="api-reference"]',
-    )
-
-    for (const node of Array.from(candidates)) {
-      const style = window.getComputedStyle(node)
-      const top = Number.parseFloat(style.top || '9999')
-      const isTopLayer =
-        (style.position === 'fixed' || style.position === 'sticky') && top <= 64
-
-      if (isTopLayer) {
-        node.style.pointerEvents = 'none'
-        node.style.zIndex = '1'
-      }
-    }
-  }
-
   useEffect(() => {
     if (!resolvedTheme) {
       return
@@ -114,10 +96,6 @@ export function ApiReference({ openApiUrl }: { openApiUrl: string }) {
         height: auto !important;
         overflow: visible !important;
       }
-      .scalar-api-reference,
-      .scalar-api-reference * {
-        z-index: auto !important;
-      }
       .scalar-api-reference .sidebar {
         align-self: stretch;
       }
@@ -181,7 +159,6 @@ export function ApiReference({ openApiUrl }: { openApiUrl: string }) {
       customCss: scalarCss,
     })
     hideAskAiUi(element)
-    neutralizeScalarTopOverlays(element)
   }, [isDark, openApiUrl, scalarCss, scriptReady, state])
 
   useEffect(() => {
@@ -192,7 +169,6 @@ export function ApiReference({ openApiUrl }: { openApiUrl: string }) {
 
     const observer = new MutationObserver(() => {
       hideAskAiUi(element)
-      neutralizeScalarTopOverlays(element)
     })
 
     observer.observe(element, { childList: true, subtree: true })
