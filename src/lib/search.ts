@@ -11,6 +11,7 @@ import { filter } from 'unist-util-filter'
 import { SKIP, visit } from 'unist-util-visit'
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 
+import { resolveOpenApiUrl, resolveServerOpenApiUrl } from '@/lib/openapi'
 import { type SearchResult } from '@/lib/search-types'
 
 type Section = [title: string, hash: string | null, content: string[]]
@@ -41,6 +42,12 @@ const QUERY_ALIASES: Record<string, string[]> = {
 
 const processor = remark().use(remarkMdx)
 const slugify = slugifyWithCounter()
+
+type OpenApiDocument = {
+  paths?: Record<string, Record<string, any>>
+  tags?: Array<{ name?: string; description?: string }>
+  info?: { title?: string; description?: string }
+}
 
 let cached: ReturnType<typeof buildIndex> | null = null
 
@@ -81,7 +88,41 @@ function parseSections(mdx: string): Section[] {
   return sections
 }
 
-function buildIndex() {
+async function loadOpenApiDocument(): Promise<OpenApiDocument | null> {
+  const configuredUrl = resolveOpenApiUrl()
+
+  if (configuredUrl === '/openapi.json') {
+    const openApiPath = path.resolve('./public/openapi.json')
+    if (!fs.existsSync(openApiPath)) {
+      return null
+    }
+
+    const raw = fs.readFileSync(openApiPath, 'utf8')
+    return JSON.parse(raw) as OpenApiDocument
+  }
+
+  try {
+    const response = await fetch(resolveServerOpenApiUrl(), {
+      next: { revalidate: 300 },
+    })
+
+    if (!response.ok) {
+      throw new Error(`OpenAPI fetch failed (${response.status})`)
+    }
+
+    return (await response.json()) as OpenApiDocument
+  } catch {
+    const openApiPath = path.resolve('./public/openapi.json')
+    if (!fs.existsSync(openApiPath)) {
+      return null
+    }
+
+    const raw = fs.readFileSync(openApiPath, 'utf8')
+    return JSON.parse(raw) as OpenApiDocument
+  }
+}
+
+async function buildIndex() {
   function toPublicPath(pathname: string): string {
     if (pathname === '/docs') return '/'
     if (pathname.startsWith('/docs/')) return pathname.replace(/^\/docs/, '')
@@ -122,15 +163,8 @@ function buildIndex() {
     }
   }
 
-  const openApiPath = path.resolve('./public/openapi.json')
-  if (fs.existsSync(openApiPath)) {
-    const raw = fs.readFileSync(openApiPath, 'utf8')
-    const openApi = JSON.parse(raw) as {
-      paths?: Record<string, Record<string, any>>
-      tags?: Array<{ name?: string; description?: string }>
-      info?: { title?: string; description?: string }
-    }
-
+  const openApi = await loadOpenApiDocument()
+  if (openApi) {
     const tagDescriptions = new Map<string, string>()
     for (const tag of openApi.tags ?? []) {
       if (tag.name) {
@@ -188,22 +222,22 @@ function buildIndex() {
   return { index }
 }
 
-function getIndex() {
+async function getIndex() {
   if (!cached) {
     cached = buildIndex()
   }
 
-  return cached.index
+  return (await cached).index
 }
 
-export function searchDocs(query: string, limit = 8): SearchResult[] {
+export async function searchDocs(query: string, limit = 8): Promise<SearchResult[]> {
   const cleanedQuery = normalize(query)
   if (cleanedQuery.length < 2) {
     return []
   }
 
   const expandedQueries = expandQuery(cleanedQuery)
-  const index = getIndex()
+  const index = await getIndex()
   const raw = expandedQueries.flatMap(
     (candidate) =>
       index.search(candidate, {

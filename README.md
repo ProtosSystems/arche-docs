@@ -20,8 +20,12 @@ Finally, open [http://localhost:3000](http://localhost:3000) in your browser to 
 
 ## OpenAPI reference
 
-The API Reference page at `/docs/reference` renders the OpenAPI schema using ReDoc. Configure the
-schema URL via `NEXT_PUBLIC_OPENAPI_URL` (defaults to `http://localhost:8000/openapi.json`).
+The API Reference page at `/docs/reference` renders the OpenAPI schema using Scalar. Configure the
+schema URL via `NEXT_PUBLIC_OPENAPI_URL` (defaults to `/openapi.json`).
+
+The same configured schema source is also used to build API Reference search results. If
+`NEXT_PUBLIC_OPENAPI_URL` points to a remote schema, search indexes that remote document; otherwise
+it falls back to `public/openapi.json`.
 
 ## Phantom endpoint check
 

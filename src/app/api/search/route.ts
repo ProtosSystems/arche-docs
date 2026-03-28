@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     ? Math.min(Math.max(Math.trunc(requestedLimit), 1), 20)
     : 8
 
-  const results = searchDocs(query, limit)
+  const results = await searchDocs(query, limit)
 
   return NextResponse.json(
     { results },
