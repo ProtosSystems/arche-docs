@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "check:phantom-endpoints": "python3 scripts/check_phantom_endpoints.py",
+    "sync:openapi": "python3 scripts/sync_openapi_snapshot.py",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
