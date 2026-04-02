@@ -1,0 +1,45 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Environments',
+  description:
+    'Use the public Arche API host documented here and configure clients against the correct base URL.',
+  path: '/environments',
+})
+
+export const sections = [
+  { title: 'Base Host', id: 'base-host' },
+  { title: 'Schema Source', id: 'schema-source' },
+  { title: 'Configuration Guidance', id: 'configuration-guidance' },
+]
+
+# Environments
+
+Arche documentation examples target the public production API.
+
+## Base Host
+
+Use the production host shown throughout the docs:
+
+```text
+https://api.arche.fi
+```
+
+Versioned API routes live under `/v1`.
+
+```text
+GET https://api.arche.fi/v1/edgar/companies:resolve?ticker=AAPL
+```
+
+## Schema Source
+
+The API reference page renders the current OpenAPI schema exposed by the docs site.
+
+Use [API reference](/reference) when you need the exact parameter and response contract for a route.
+
+## Configuration Guidance
+
+- Store the base URL in configuration, not inline in application code.
+- Record the base URL together with the exact request parameters for reproducible jobs.
+
+<NextSteps currentPath="/environments" />

@@ -22,24 +22,19 @@ export default async function DocsLayout({
     }
   }
 
-  function toPublicPath(pathname: string): string {
-    if (pathname === '/docs') return '/'
-    if (pathname.startsWith('/docs/')) return pathname.replace(/^\/docs/, '')
-    return pathname
-  }
-
-  let pages = await glob('docs/**/*.mdx', { cwd: 'src/app' })
-  let allSectionsEntries = (await Promise.all(
+  let pages = await glob('\\(docs\\)/**/*.mdx', { cwd: 'src/app' })
+  let allSectionsEntries = await Promise.all(
     pages.map(async (filename) => {
-      const internalPath = '/' + filename.replace(/(^|\/)page\.mdx$/, '')
+      const internalPath =
+        '/' +
+        filename
+          .replace(/^\(docs\)\//, '')
+          .replace(/(^|\/)page\.mdx$/, '')
       const sections = (await import(`../${filename}`)).sections as Array<Section>
-      return [
-        [internalPath, sections],
-        [toPublicPath(internalPath), sections],
-      ] as const
+      return [internalPath, sections] as const
     }),
-  )) as Array<readonly [readonly [string, Array<Section>], readonly [string, Array<Section>]]>
-  let allSections = Object.fromEntries(allSectionsEntries.flat())
+  )
+  let allSections = Object.fromEntries(allSectionsEntries)
 
   return <Layout allSections={allSections}>{children}</Layout>
 }

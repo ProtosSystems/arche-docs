@@ -1,0 +1,107 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Request & Response Conventions',
+  description:
+    'Learn the common request patterns, response envelopes, timestamps, nullability, and ordering semantics used across Arche.',
+  path: '/request-response-conventions',
+})
+
+export const sections = [
+  { title: 'Request Shape', id: 'request-shape' },
+  { title: 'Response Envelopes', id: 'response-envelopes' },
+  { title: 'Field Naming', id: 'field-naming' },
+  { title: 'Timestamps and Dates', id: 'timestamps-and-dates' },
+  { title: 'Nullability and Precision', id: 'nullability-and-precision' },
+  { title: 'Ordering and Pagination', id: 'ordering-and-pagination' },
+]
+
+# Request & Response Conventions
+
+Arche is an HTTP JSON API with consistent conventions across the public surface.
+
+## Request Shape
+
+Typical requests combine:
+
+- a versioned path under `/v1`
+- route parameters such as `cik` or `statement_version_id`
+- query parameters such as `as_of`, `page`, `page_size`, or fiscal filters
+- the `X-Api-Key` header for authenticated access
+
+Representative request:
+
+```http
+GET /v1/edgar/companies:resolve?ticker=AAPL&as_of=2024-03-31
+X-Api-Key: YOUR_API_KEY
+Accept: application/json
+```
+
+## Response Envelopes
+
+Most singleton responses are wrapped in `data`.
+
+```json
+{
+  "data": {
+    "cik": "0000320193",
+    "ticker": "AAPL",
+    "entity_name": "Apple Inc.",
+    "exchange": "NASDAQ"
+  }
+}
+```
+
+Collection responses may include paging fields and an `items` array.
+
+```json
+{
+  "page": 1,
+  "page_size": 50,
+  "total": 2,
+  "items": []
+}
+```
+
+## Field Naming
+
+Public JSON fields use `snake_case`.
+
+Representative examples:
+
+- `statement_version_id`
+- `accepted_at`
+- `fiscal_year`
+- `as_of_date`
+- `as_of_timestamp`
+
+## Timestamps and Dates
+
+Arche uses both date-only and timestamp fields.
+
+- Use date fields such as `as_of_date` when the API is expressing a calendar date.
+- Use timestamp fields such as `accepted_at` or `as_of_timestamp` when event order matters.
+- Expect timestamps to be ISO 8601 strings in UTC.
+
+## Nullability and Precision
+
+Not every field is populated on every route or every issuer.
+
+<Warning>
+  <p>
+    Treat nullable fields as a normal part of the contract. Do not coerce missing data into zero
+    unless your downstream model explicitly requires that transformation.
+  </p>
+</Warning>
+
+Financial values may be represented as decimal strings. Preserve them as strings or high-precision numeric types until you control the conversion boundary.
+
+## Ordering and Pagination
+
+Do not assume every collection route shares one global sort order or one universal pagination model.
+
+- Use the route-level documentation in [API reference](/reference) for exact parameters.
+- Persist the full request, including filters and pagination inputs, when building reproducible jobs.
+- Prefer [Pagination](/pagination) guidance for multi-page collection reads.
+
+<NextSteps currentPath="/request-response-conventions" />

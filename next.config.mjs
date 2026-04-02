@@ -18,43 +18,6 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/**/*': ['./src/app/**/*.mdx'],
   },
-  async redirects() {
-    return [
-      {
-        source: '/docs',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/docs/:path*',
-        destination: '/:path*',
-        permanent: true,
-      },
-    ]
-  },
-  async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: '/',
-          destination: '/docs',
-        },
-        {
-          source:
-            '/:slug(quickstart|concepts|data-model|examples|rate-limits|errors|changelog)',
-          destination: '/docs/:slug',
-        },
-        {
-          source: '/guides/:path*',
-          destination: '/docs/guides/:path*',
-        },
-        {
-          source: '/reference',
-          destination: '/docs/reference',
-        },
-      ],
-    }
-  },
 }
 
 export default withMDX(nextConfig)

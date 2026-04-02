@@ -1,0 +1,37 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Changelog',
+  description:
+    'Track public documentation and API contract changes that affect Arche integrations.',
+  path: '/changelog',
+})
+
+export const sections = [
+  { title: '2026-04-01', id: '2026-04-01' },
+  { title: '2026-03-01', id: '2026-03-01' },
+]
+
+# Changelog
+
+This changelog tracks public-facing docs and contract surface changes. It is intended for integrators, not internal release bookkeeping.
+
+## 2026-04-01
+
+Documentation release:
+
+- canonicalized the docs surface at root paths such as `/quickstart` and `/reference`
+- replaced transitional examples with task-specific guide pages
+- added foundational pages for environments, versioning, authentication, and request/response conventions
+- aligned navigation, search, and internal linking with the new information architecture
+
+## 2026-03-01
+
+Initial public documentation release for the Arche API.
+
+Documented route families included:
+
+- company resolution
+- company filings and statements
+- as_of financial retrieval
+- restatement timeline and related lineage workflows

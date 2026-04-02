@@ -1,0 +1,42 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Rate limits',
+  description:
+    'Handle Arche throttling responses safely and build clients that back off under load.',
+  path: '/rate-limits',
+})
+
+export const sections = [
+  { title: '429 Handling', id: '429-handling' },
+  { title: 'Client Strategy', id: 'client-strategy' },
+]
+
+# Rate limits
+
+The public schema documents `429` responses on the authenticated routes covered in these docs.
+
+## 429 Handling
+
+When your client is throttled, the API returns HTTP `429`.
+
+Recommended handling:
+
+1. stop issuing new requests for that route or worker
+2. back off before retrying
+3. resume with bounded concurrency rather than a burst retry
+
+## Client Strategy
+
+- Prefer sequential or modestly concurrent pagination unless you have measured headroom.
+- Cache stable lookup results such as company resolution where appropriate.
+- Separate interactive traffic from large historical extraction jobs.
+
+<Warning>
+  <p>
+    Do not hardcode assumptions about rate-limit header names or window sizes unless you have
+    verified them in the deployment you are integrating with.
+  </p>
+</Warning>
+
+<NextSteps currentPath="/rate-limits" />

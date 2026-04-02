@@ -58,11 +58,11 @@ export const Header = forwardRef<
             API Reference
           </Link>
           <Button
-            href="https://app.arche.fi"
+            href="/quickstart"
             variant="primary"
             className="dark:bg-[#cbd5e1] dark:text-[#0b0f1a] dark:ring-[#cbd5e1] dark:hover:bg-[#e2e8f0]"
           >
-            Get started
+            Quickstart
           </Button>
           <Button href="https://app.arche.fi/login" variant="text">
             Sign in

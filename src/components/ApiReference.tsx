@@ -3,8 +3,6 @@
 import { useTheme } from 'next-themes'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { Prose } from '@/components/Prose'
-
 type LoadState = 'loading' | 'ready' | 'error'
 
  
@@ -229,15 +227,6 @@ export function ApiReference({ openApiUrl }: { openApiUrl: string }) {
 
   return (
     <div className="space-y-8 pt-6 pb-10">
-      <Prose>
-        <h1>API Reference</h1>
-        <p>
-          The API Reference is generated from the live OpenAPI schema. The public
-          contract is versioned under <strong>/v1</strong> and remains stable for
-          integrations.
-        </p>
-      </Prose>
-
       <div className="rounded-3xl border border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

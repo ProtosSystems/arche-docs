@@ -1,0 +1,66 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Point-in-time research',
+  description:
+    'Build research pipelines that preserve historical knowability and avoid look-ahead drift.',
+  path: '/guides/point-in-time-research',
+})
+
+export const sections = [
+  { title: 'Research Goal', id: 'research-goal' },
+  { title: 'Dataset Inputs', id: 'dataset-inputs' },
+  { title: 'Query Pattern', id: 'query-pattern' },
+  { title: 'Reproducibility Rules', id: 'reproducibility-rules' },
+]
+
+# Point-in-Time Research
+
+This guide focuses on using Arche in research and backtest pipelines where historical correctness matters more than present-day convenience.
+
+## Research Goal
+
+You want a dataset that answers:
+
+- what was known on the rebalance date
+- which statement version produced that answer
+- whether the same request can be re-run later without drift
+
+## Dataset Inputs
+
+A reproducible research job should preserve at least:
+
+- the company identifier, such as `cik`
+- the query boundary, such as `as_of=2024-03-31`
+- any fiscal filters or statement-type filters
+- the returned `statement_version_id` values
+
+## Query Pattern
+
+Representative point-in-time request:
+
+```http
+GET /v1/edgar/as-of/2024-03-31/financials/0000320193
+```
+
+Common pattern:
+
+1. resolve or pre-store the company identifier
+2. compute the research boundary for each decision date
+3. request point-in-time financials at that boundary
+4. persist both the returned data and the request inputs
+
+## Reproducibility Rules
+
+- Prefer `as_of` routes over latest-state routes when generating historical features.
+- Do not backfill later restated values into earlier model snapshots.
+- Record exact request parameters together with your model run metadata.
+
+<Tip>
+  <p>
+    Arche is most valuable when you treat retrieval semantics as part of the experiment definition,
+    not just a transport detail.
+  </p>
+</Tip>
+
+<NextSteps currentPath="/guides/point-in-time-research" />

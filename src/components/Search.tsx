@@ -21,8 +21,8 @@ import {
 } from 'react'
 import Highlighter from 'react-highlight-words'
 
+import { docsNavigation } from '@/lib/docs'
 import { type SearchResult as Result } from '@/lib/search-types'
-import { navigation } from '@/components/Navigation'
 import { useMobileNavigationStore } from './MobileNavigation'
 
 type EmptyObject = Record<string, never>
@@ -193,7 +193,7 @@ function SearchResult({
 }) {
   let id = useId()
 
-  let sectionTitle = navigation.find((section) =>
+  let sectionTitle = docsNavigation.find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0]),
   )?.title
   let hierarchy = [sectionTitle, result.pageTitle].filter(

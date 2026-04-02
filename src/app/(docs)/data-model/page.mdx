@@ -1,0 +1,83 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Data model',
+  description:
+    'Understand the issuer, filing, statement, and statement-version hierarchy used across Arche routes.',
+  path: '/data-model',
+})
+
+export const sections = [
+  { title: 'Hierarchy', id: 'hierarchy' },
+  { title: 'Company', id: 'company' },
+  { title: 'Filing', id: 'filing' },
+  { title: 'Statement', id: 'statement' },
+  { title: 'Statement Version', id: 'statement-version' },
+]
+
+# Data Model
+
+Arche organizes public-company fundamentals into a hierarchy that supports both current-state and point-in-time retrieval.
+
+## Hierarchy
+
+Company -> Filing -> Statement -> Version -> Facts
+
+## Company
+
+Represents a public issuer.
+
+Key fields:
+
+- `cik`
+- `ticker`
+- `entity_name`
+- `exchange`
+
+## Filing
+
+Represents an SEC filing such as:
+
+- 10-K
+- 10-Q
+- 8-K
+
+Key fields:
+
+- `accession_id`
+- `form_type`
+- `accepted_at`
+
+## Statement
+
+Normalized financial statement extracted from a filing.
+
+Examples:
+
+- income statement
+- balance sheet
+- cash flow statement
+
+## Statement Version
+
+Represents a specific version of a statement.
+
+Key fields:
+
+- `statement_version_id`
+- `version_sequence`
+- `accepted_at`
+- `is_restated`
+- `source_filing`
+
+Versions are immutable.
+
+<Tip>
+  <p>
+    If you only keep a company identifier and a reporting period, you may lose reproducibility. For
+    auditability, preserve the <code>statement_version_id</code> whenever you materialize data
+    downstream.
+  </p>
+</Tip>
+
+<NextSteps currentPath="/data-model" />

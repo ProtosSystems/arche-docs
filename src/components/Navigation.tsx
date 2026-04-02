@@ -9,16 +9,9 @@ import { useRef } from 'react'
 import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
+import { docsNavigation, type NavGroup } from '@/lib/docs'
 import { remToPx } from '@/lib/remToPx'
 import { CloseButton } from '@headlessui/react'
-
-interface NavGroup {
-  title: string
-  links: Array<{
-    title: string
-    href: string
-  }>
-}
 
 function useInitialValue<T>(value: T, condition = true) {
   let initialValue = useRef(value).current
@@ -231,46 +224,12 @@ function NavigationGroup({
   )
 }
 
-export const navigation: Array<NavGroup> = [
-  {
-    title: 'Documentation',
-    links: [
-      { title: 'Introduction', href: '/' },
-      { title: 'Quickstart', href: '/quickstart' },
-      { title: 'Concepts', href: '/concepts' },
-      { title: 'Data Model', href: '/data-model' },
-    ],
-  },
-  {
-    title: 'Guides',
-    links: [
-      {
-        title: 'Golden Path: Detect Restatement Drift',
-        href: '/guides/golden-path-restatement-drift',
-      },
-      {
-        title: 'Golden Path (Secondary): Research Workflows',
-        href: '/examples',
-      },
-    ],
-  },
-  {
-    title: 'Reference',
-    links: [
-      { title: 'API Reference', href: '/reference' },
-      { title: 'Rate Limits', href: '/rate-limits' },
-      { title: 'Errors', href: '/errors' },
-      { title: 'Changelog', href: '/changelog' },
-    ],
-  },
-]
-
 export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
   return (
     <nav {...props}>
       <ul role="list">
         <TopLevelNavItem href="/">Documentation</TopLevelNavItem>
-        {navigation.map((group, groupIndex) => (
+        {docsNavigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}
             group={group}

@@ -1,0 +1,89 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Pagination',
+  description:
+    'Use page-based Arche collection routes correctly and preserve deterministic multi-page retrieval.',
+  path: '/pagination',
+})
+
+export const sections = [
+  { title: 'Collection Routes', id: 'collection-routes' },
+  { title: 'Common Parameters', id: 'common-parameters' },
+  { title: 'Response Shape', id: 'response-shape' },
+  { title: 'Best Practices', id: 'best-practices' },
+]
+
+# Pagination
+
+List endpoints may return paginated results rather than the full dataset in a single response.
+
+## Collection Routes
+
+Expect pagination on endpoints that return collections, timelines, or large result sets.
+
+Check the API reference for endpoint-specific parameters and response fields.
+
+## Common Parameters
+
+The OpenAPI schema currently includes pagination parameters such as:
+
+- `page`
+- `page_size`
+- `limit`
+- `per_page`
+
+Not every endpoint uses every parameter, so rely on the route contract instead of assuming one universal shape.
+
+## Response Shape
+
+Representative collection payload:
+
+```json
+{
+  "page": 1,
+  "page_size": 50,
+  "total": 128,
+  "items": []
+}
+```
+
+Representative request:
+
+<CodeGroup title="Paginated request">
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/restatement-alerts?page=1&page_size=50" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```ts
+const response = await fetch(
+  'https://api.arche.fi/v1/edgar/restatement-alerts?page=1&page_size=50',
+  {
+    headers: {
+      'X-Api-Key': process.env.ARCHE_API_KEY!,
+      Accept: 'application/json',
+    },
+  },
+)
+```
+
+```python
+response = requests.get(
+    "https://api.arche.fi/v1/edgar/restatement-alerts",
+    params={"page": 1, "page_size": 50},
+    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    timeout=30,
+)
+```
+</CodeGroup>
+
+## Best Practices
+
+- Prefer smaller page sizes for interactive tooling.
+- Use stable filters and sorting when exporting data across multiple pages.
+- Persist the exact query parameters used for reproducible research jobs.
+- Avoid parallel page fan-out until you know a route’s ordering guarantees.
+
+<NextSteps currentPath="/pagination" />

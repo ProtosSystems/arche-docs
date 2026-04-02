@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "check:docs": "node scripts/check_docs_integrity.mjs",
     "check:phantom-endpoints": "python3 scripts/check_phantom_endpoints.py",
     "sync:openapi": "python3 scripts/sync_openapi_snapshot.py",
     "dev": "next dev",

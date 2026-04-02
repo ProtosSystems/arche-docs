@@ -1,0 +1,136 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Overview',
+  description:
+    'Start with Arche fundamentals, first-request entry points, and the core workflows for deterministic financial data retrieval.',
+  path: '/',
+})
+
+export const sections = [
+  { title: 'Start Here', id: 'start-here' },
+  { title: 'What Arche Solves', id: 'what-arche-solves' },
+  { title: 'First Request', id: 'first-request' },
+  { title: 'Core Workflows', id: 'core-workflows' },
+]
+
+# Arche Documentation
+
+Arche is a developer-first API for deterministic, versioned, point-in-time financial fundamentals.
+
+Use the docs in this order:
+
+<CardGroup>
+  <Card href="/quickstart" title="Quickstart">
+    Make a real request, retrieve statement versions, and run an <code>as_of</code> query.
+  </Card>
+  <Card href="/concepts" title="Concepts">
+    Learn how restatements, version history, and point-in-time correctness fit together.
+  </Card>
+  <Card href="/reference" title="API reference">
+    Browse the live OpenAPI contract for route-level request and response details.
+  </Card>
+  <Card href="/guides/restatement-drift" title="Flagship guide">
+    See how restatement drift changes research results when history is not queried correctly.
+  </Card>
+</CardGroup>
+
+## Start Here
+
+If your use case depends on historical correctness, Arche is usually about one of four tasks:
+
+- resolve a company identifier into a canonical issuer record
+- retrieve statements or filings for that issuer
+- inspect statement version lineage across restatements
+- query what was knowable on a specific date
+
+## What Arche Solves
+
+Traditional datasets often expose the latest corrected history. That is convenient for present-day analysis, but it breaks reproducibility when historical values change later.
+
+Arche preserves:
+
+- versioned statement lineage
+- point-in-time query semantics
+- deterministic retrieval for the same request
+
+<Warning>
+  <p>
+    If you backtest with the latest restated values instead of what was actually knowable on the
+    decision date, your historical results can drift over time.
+  </p>
+</Warning>
+
+## First Request
+
+Resolve a ticker into a canonical issuer record:
+
+<CodeGroup title="Resolve a company">
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies:resolve?ticker=MSFT" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```ts
+const response = await fetch(
+  'https://api.arche.fi/v1/edgar/companies:resolve?ticker=MSFT',
+  {
+    headers: {
+      'X-Api-Key': process.env.ARCHE_API_KEY!,
+      Accept: 'application/json',
+    },
+  },
+)
+
+const payload = await response.json()
+console.log(payload.data)
+```
+
+```python
+import os
+import requests
+
+response = requests.get(
+    "https://api.arche.fi/v1/edgar/companies:resolve",
+    params={"ticker": "MSFT"},
+    headers={
+        "X-Api-Key": os.environ["ARCHE_API_KEY"],
+        "Accept": "application/json",
+    },
+    timeout=30,
+)
+
+print(response.json()["data"])
+```
+</CodeGroup>
+
+Representative response:
+
+```json
+{
+  "data": {
+    "as_of": "2026-03-01",
+    "cik": "0000789019",
+    "exchange": "NASDAQ",
+    "ticker": "MSFT"
+  }
+}
+```
+
+## Core Workflows
+
+<CardGroup>
+  <Card href="/guides/company-resolution-and-statement-retrieval" title="Resolve a company and retrieve statements">
+    Move from ticker lookup into filings and statement discovery.
+  </Card>
+  <Card href="/guides/rebuild-historical-view" title="Rebuild a historical view">
+    Reconstruct what a statement looked like on a specific date.
+  </Card>
+  <Card href="/guides/point-in-time-research" title="Point-in-time research">
+    Build research jobs that preserve knowability and reproducibility.
+  </Card>
+  <Card href="/guides/restatement-drift" title="Restatement drift">
+    Quantify how historical results can change when restatements arrive later.
+  </Card>
+</CardGroup>

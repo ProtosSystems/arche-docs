@@ -1,0 +1,66 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Errors',
+  description:
+    'Interpret Arche error responses, status codes, and trace identifiers when requests fail.',
+  path: '/errors',
+})
+
+export const sections = [
+  { title: 'Error Envelope', id: 'error-envelope' },
+  { title: 'Status Codes', id: 'status-codes' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Errors
+
+Arche returns machine-readable JSON errors so failed requests can be retried, routed, or escalated programmatically.
+
+## Error Envelope
+
+Representative error response:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "http_status": 400,
+    "message": "from must be <= to",
+    "trace_id": "req-123"
+  }
+}
+```
+
+Field meanings:
+
+- `code`: stable machine-readable classification
+- `http_status`: HTTP status that should drive retry or fallback behavior
+- `message`: operator-facing detail for logs and debugging
+- `trace_id`: request identifier to include when escalating an issue
+
+## Status Codes
+
+The public schema documents route-level error statuses including:
+
+- `400` for invalid parameters or malformed requests
+- `401` for missing or invalid authentication
+- `403` for unauthorized access
+- `404` when a requested resource cannot be found
+- `429` when the request budget is exceeded
+
+## Troubleshooting
+
+- Log the request path, query parameters, response status, and `trace_id`.
+- Treat `400` responses as caller bugs to be fixed before retry.
+- Treat `429` responses as backoff signals rather than permanent failures.
+- Preserve the original request inputs when debugging point-in-time discrepancies.
+
+<Warning>
+  <p>
+    Do not parse only the HTTP status. Use the structured error body so different failure classes can
+    be handled explicitly.
+  </p>
+</Warning>
+
+<NextSteps currentPath="/errors" />

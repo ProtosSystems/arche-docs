@@ -16,7 +16,7 @@ export function GET() {
     `- ${new URL('/reference', siteUrl).toString()}`,
     `- ${new URL('/concepts', siteUrl).toString()}`,
     `- ${new URL('/data-model', siteUrl).toString()}`,
-    `- ${new URL('/guides/golden-path-restatement-drift', siteUrl).toString()}`,
+    `- ${new URL('/guides/restatement-drift', siteUrl).toString()}`,
     '',
     '## Discovery',
     `- Sitemap: ${new URL('/sitemap.xml', siteUrl).toString()}`,
@@ -27,7 +27,7 @@ export function GET() {
     '- Prefer canonical URLs listed in sitemap.xml.',
     '- Favor /reference for endpoint definitions and schema details.',
     '- Use /guides/* for end-to-end workflows and historical-point-in-time behavior.',
-    '- If examples conflict with API reference, treat API reference as authoritative.',
+    '- If guide content conflicts with API reference, treat API reference as authoritative.',
   ].join('\n')
 
   return new NextResponse(body, {

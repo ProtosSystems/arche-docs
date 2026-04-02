@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-DEFAULT_DOCS_ROOT = Path("src/app/docs")
+DEFAULT_DOCS_ROOT = Path("src/app/(docs)")
 DEFAULT_ARCHE_API_ROOT = Path("../arche_api")
 DEFAULT_OPENAPI_SNAPSHOT = DEFAULT_ARCHE_API_ROOT / "tests/openapi/snapshots/openapi.json"
 
@@ -63,6 +63,25 @@ def _iter_docs_files(docs_root: Path) -> Iterable[Path]:
         yield path
 
 
+def _compile_openapi_patterns(openapi_paths: set[str]) -> list[tuple[re.Pattern[str], str]]:
+    patterns: list[tuple[re.Pattern[str], str]] = []
+    for path in sorted(openapi_paths):
+        regex = re.sub(r"\{[^/]+\}", r"[^/]+", path)
+        patterns.append((re.compile(rf"^{regex}$"), path))
+    return patterns
+
+
+def _resolve_route(route: str, openapi_paths: set[str], patterns: list[tuple[re.Pattern[str], str]]) -> str | None:
+    if route in openapi_paths:
+        return route
+
+    for pattern, template in patterns:
+        if pattern.match(route):
+            return template
+
+    return None
+
+
 def _extract_routes(line: str) -> list[str]:
     if "[HYPOTHETICAL]" in line:
         return []
@@ -88,13 +107,14 @@ def _main() -> int:
 
     openapi = _load_openapi(args.openapi_path, args.arche_api_root)
     openapi_paths = set(openapi.get("paths", {}).keys())
+    openapi_patterns = _compile_openapi_patterns(openapi_paths)
 
     missing: list[str] = []
 
     for doc_path in _iter_docs_files(docs_root):
         for line_no, line in enumerate(doc_path.read_text().splitlines(), start=1):
             for route in _extract_routes(line):
-                if route not in openapi_paths:
+                if _resolve_route(route, openapi_paths, openapi_patterns) is None:
                     missing.append(f"{doc_path}:{line_no} -> {route}")
 
     if missing:

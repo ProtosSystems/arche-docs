@@ -10,14 +10,16 @@ type Entry = {
 }
 
 function toRouteFromPageFilename(filename: string): string {
-  const internal = '/' + filename.replace(/(^|\/)page\.(mdx|tsx)$/, '')
-  if (internal === '/docs') return '/'
-  if (internal.startsWith('/docs/')) return internal.replace(/^\/docs/, '')
-  return internal
+  return (
+    '/' +
+    filename
+      .replace(/^\(docs\)\//, '')
+      .replace(/(^|\/)page\.(mdx|tsx)$/, '')
+  )
 }
 
 function getDocEntries(): Array<Entry> {
-  const files = glob.sync(['docs/**/page.mdx', 'docs/**/page.tsx'], {
+  const files = glob.sync(['\\(docs\\)/**/page.mdx', '\\(docs\\)/**/page.tsx'], {
     cwd: 'src/app',
   })
   const routes = files

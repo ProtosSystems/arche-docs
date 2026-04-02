@@ -1,26 +1,37 @@
 # Arche Docs
 
-Branded documentation site for the Arche API, built with Next.js App Router and MDX.
+Documentation site for the Arche API, built with Next.js App Router, MDX, and a live OpenAPI-backed reference.
 
 ## Getting started
 
-To get started with this template, first install the npm dependencies:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Next, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
+Open [http://localhost:3000](http://localhost:3000).
+
+## Documentation structure
+
+Canonical public docs live at the site root, such as `/quickstart`, `/reference`, and `/guides/restatement-drift`.
+
+Current top-level sections:
+
+- Get started
+- Core concepts
+- Guides
+- API
 
 ## OpenAPI reference
 
-The API Reference page at `/docs/reference` renders the OpenAPI schema using Scalar. Configure the
+The API Reference page at `/reference` renders the OpenAPI schema using Scalar. Configure the
 schema URL via `NEXT_PUBLIC_OPENAPI_URL` (defaults to `/openapi.json`).
 
 The same configured schema source is also used to build API Reference search results. If
@@ -37,27 +48,17 @@ npm run check:phantom-endpoints
 
 ## Customizing
 
-You can start editing this template by modifying the files in the `/src` folder. The site will auto-update as you edit these files.
+- Foundational docs pages live under `src/app/(docs)/`.
+- Guide pages live under `src/app/(docs)/guides/`.
+- Shared docs navigation and metadata helpers live in `src/lib/docs.ts`.
+- MDX UI primitives such as callouts, next-step cards, and tabbed code blocks live in `src/components/mdx.tsx`.
 
 ## Global search
 
-This template includes a global search that's powered by the [FlexSearch](https://github.com/nextapps-de/flexsearch) library. It's available by clicking the search input or by using the `⌘K` shortcut.
+Global search is powered by [FlexSearch](https://github.com/nextapps-de/flexsearch). It indexes the MDX docs pages plus the configured OpenAPI schema.
 
-This feature requires no configuration, and works out of the box by automatically scanning your documentation pages to build its index. You can adjust the search parameters by editing the `/src/mdx/search.mjs` file.
+Search behavior lives in `src/lib/search.ts`.
 
 ## License
 
 This site template is a commercial product and is licensed under the [Tailwind Plus license](https://tailwindcss.com/plus/license).
-
-## Learn more
-
-To learn more about the technologies used in this site template, see the following resources:
-
-- [Tailwind CSS](https://tailwindcss.com/docs) - the official Tailwind CSS documentation
-- [Next.js](https://nextjs.org/docs) - the official Next.js documentation
-- [Headless UI](https://headlessui.dev) - the official Headless UI documentation
-- [Framer Motion](https://www.framer.com/docs/) - the official Framer Motion documentation
-- [MDX](https://mdxjs.com/) - the official MDX documentation
-- [Algolia Autocomplete](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/) - the official Algolia Autocomplete documentation
-- [FlexSearch](https://github.com/nextapps-de/flexsearch) - the official FlexSearch documentation
-- [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) - the official Zustand documentation

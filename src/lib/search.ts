@@ -123,14 +123,8 @@ async function loadOpenApiDocument(): Promise<OpenApiDocument | null> {
 }
 
 async function buildIndex() {
-  function toPublicPath(pathname: string): string {
-    if (pathname === '/docs') return '/'
-    if (pathname.startsWith('/docs/')) return pathname.replace(/^\/docs/, '')
-    return pathname
-  }
-
   const appDir = path.resolve('./src/app')
-  const files = glob.sync('docs/**/*.mdx', { cwd: appDir })
+  const files = glob.sync('\\(docs\\)/**/*.mdx', { cwd: appDir })
 
   const index = new FlexSearch.Document<IndexedDoc>({
     tokenize: 'full',
@@ -147,7 +141,11 @@ async function buildIndex() {
   })
 
   for (const file of files) {
-    const pageUrl = toPublicPath('/' + file.replace(/(^|\/)page\.mdx$/, ''))
+    const pageUrl =
+      '/' +
+      file
+        .replace(/^\(docs\)\//, '')
+        .replace(/(^|\/)page\.mdx$/, '')
     const mdx = fs.readFileSync(path.join(appDir, file), 'utf8')
     const sections = parseSections(mdx)
 
@@ -309,7 +307,7 @@ function scoreDoc(doc: IndexedDoc, normalizedQuery: string, queryTerms: string[]
   }
   if (
     isRestatementIntent(normalizedQuery) &&
-    url.includes('/guides/golden-path-restatement-drift')
+    url.includes('/guides/restatement-drift')
   ) {
     score += 120
   }

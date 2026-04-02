@@ -1,0 +1,70 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Company resolution and statement retrieval',
+  description:
+    'Resolve a public issuer, retrieve filings and statements, and move into Arche analysis workflows.',
+  path: '/guides/company-resolution-and-statement-retrieval',
+})
+
+export const sections = [
+  { title: 'Resolve the Company', id: 'resolve-the-company' },
+  { title: 'Inspect Filings', id: 'inspect-filings' },
+  { title: 'Retrieve Statements', id: 'retrieve-statements' },
+  { title: 'Move into Point-in-Time Analysis', id: 'move-into-point-in-time-analysis' },
+]
+
+# Company Resolution and Statement Retrieval
+
+This is the basic operational workflow for moving from a ticker to actual Arche statement data.
+
+## Resolve the Company
+
+```http
+GET /v1/edgar/companies:resolve?ticker=AAPL
+```
+
+Use the resolved company record to obtain the canonical `cik`.
+
+## Inspect Filings
+
+Once you have a `cik`, you can inspect filing history.
+
+```http
+GET /v1/edgar/companies/{cik}/filings
+```
+
+If you need a single filing:
+
+```http
+GET /v1/edgar/companies/{cik}/filings/{accession_id}
+```
+
+## Retrieve Statements
+
+List company statements directly:
+
+```http
+GET /v1/edgar/companies/{cik}/statements?statement_type=INCOME_STATEMENT&page=1&page_size=10
+```
+
+Or inspect statements within a specific filing:
+
+```http
+GET /v1/edgar/companies/{cik}/filings/{accession_id}/statements
+```
+
+This is the route split to keep in mind:
+
+- filing routes answer document-history questions
+- statement routes answer normalized-financial-data questions
+
+## Move into Point-in-Time Analysis
+
+Once you know the issuer and the statement family you care about, switch to point-in-time retrieval when the historical boundary matters.
+
+```http
+GET /v1/edgar/as-of/{date}/financials/{cik}
+```
+
+<NextSteps currentPath="/guides/company-resolution-and-statement-retrieval" />

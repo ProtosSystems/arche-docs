@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Feedback } from '@/components/Feedback'
 import { Heading } from '@/components/Heading'
 import { Prose } from '@/components/Prose'
+import { getRelatedDocs } from '@/lib/docs'
 
 export const a = Link
 export { Button } from '@/components/Button'
@@ -48,6 +49,101 @@ export function Note({ children }: { children: React.ReactNode }) {
       <InfoIcon className="mt-1 h-4 w-4 flex-none fill-[color:var(--docs-link)] stroke-white dark:fill-[color:var(--docs-border)] dark:stroke-[color:var(--docs-text)]" />
       <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {children}
+      </div>
+    </div>
+  )
+}
+
+function Callout({
+  children,
+  tone = 'neutral',
+}: {
+  children: React.ReactNode
+  tone?: 'neutral' | 'tip' | 'warning'
+}) {
+  return (
+    <div
+      className={clsx(
+        'my-6 flex gap-3 rounded-2xl border p-4 text-sm/6',
+        tone === 'neutral' &&
+          'border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] text-[color:var(--docs-text)]',
+        tone === 'tip' &&
+          'border-emerald-200/70 bg-emerald-50/80 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-100',
+        tone === 'warning' &&
+          'border-amber-200/70 bg-amber-50/80 text-amber-950 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-100',
+      )}
+    >
+      <div className="mt-1 h-2.5 w-2.5 flex-none rounded-full bg-current opacity-70" />
+      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">{children}</div>
+    </div>
+  )
+}
+
+export function Tip({ children }: { children: React.ReactNode }) {
+  return <Callout tone="tip">{children}</Callout>
+}
+
+export function Warning({ children }: { children: React.ReactNode }) {
+  return <Callout tone="warning">{children}</Callout>
+}
+
+export function CardGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="not-prose my-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {children}
+    </div>
+  )
+}
+
+export function Card({
+  href,
+  title,
+  children,
+}: {
+  href: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative rounded-2xl border border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] p-5 transition hover:border-[color:var(--docs-link)] hover:bg-[color:var(--docs-hover)]"
+    >
+      <div className="text-sm font-semibold text-[color:var(--docs-text)]">
+        {title}
+      </div>
+      <div className="mt-2 text-sm text-[color:var(--docs-muted)]">{children}</div>
+    </Link>
+  )
+}
+
+export function NextSteps({ currentPath }: { currentPath: string }) {
+  const pages = getRelatedDocs(currentPath, 3)
+
+  if (pages.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="not-prose mt-12 rounded-2xl border border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] p-5">
+      <p className="text-sm font-semibold text-[color:var(--docs-text)]">
+        Next steps
+      </p>
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+        {pages.map((page) => (
+          <Link
+            key={page.href}
+            href={page.href}
+            className="rounded-xl border border-[color:var(--docs-border)] bg-[color:var(--docs-bg)] p-4 transition hover:border-[color:var(--docs-link)] hover:bg-[color:var(--docs-hover)]"
+          >
+            <p className="text-sm font-semibold text-[color:var(--docs-text)]">
+              {page.title}
+            </p>
+            <p className="mt-1 text-sm text-[color:var(--docs-muted)]">
+              {page.description}
+            </p>
+          </Link>
+        ))}
       </div>
     </div>
   )

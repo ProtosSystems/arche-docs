@@ -1,0 +1,80 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Restatement drift',
+  description:
+    'Measure how later statement revisions can alter historical research results when data is not retrieved point-in-time.',
+  path: '/guides/restatement-drift',
+})
+
+export const sections = [
+  { title: 'Problem Setup', id: 'problem-setup' },
+  { title: 'Original Historical View', id: 'original-historical-view' },
+  { title: 'Restated View', id: 'restated-view' },
+  { title: 'Inspect the Lineage', id: 'inspect-the-lineage' },
+  { title: 'Correct Workflow', id: 'correct-workflow' },
+]
+
+# Restatement Drift
+
+This guide shows why historical results drift when a dataset exposes only the latest corrected history.
+
+## Problem Setup
+
+Assume a strategy includes a company when annual net income is above `96.9B`.
+
+If you evaluate that rule on the current latest history, the answer can change after a restatement arrives.
+
+## Original Historical View
+
+Ask what was knowable at a historical boundary.
+
+```http
+GET /v1/edgar/as-of/2024-03-31/financials/0000320193
+```
+
+The current schema example for this route includes `as_of_date`, `as_of_timestamp`, `pointer_set`, `snapshot_hash`, and `statements`.
+
+## Restated View
+
+Now run the same analysis after a later amendment is in history.
+
+```http
+GET /v1/edgar/as-of/2024-06-01/financials/0000320193
+```
+
+If the selected statement lineage changed between those dates, the later snapshot can point at different statement versions than the earlier one.
+
+## Inspect the Lineage
+
+Use the restatement timeline route to make the change explicit.
+
+```http
+GET /v1/edgar/companies/{cik}/statements/restatement-timeline?statement_type=INCOME_STATEMENT&fiscal_year=2023&fiscal_period=FY
+```
+
+That route tells you:
+
+- how many versions exist for the statement
+- how often key metrics changed
+- how severe the timeline is for that reporting slice
+- which metrics changed most across the timeline
+- how many hops exist between versions
+
+## Correct Workflow
+
+When the decision date matters:
+
+1. choose the decision boundary first
+2. query Arche with an `as_of` route anchored to that boundary
+3. preserve the request inputs and returned version identifiers
+4. only then join with downstream market or model data
+
+<Warning>
+  <p>
+    The wrong comparison is not old data versus new data. It is latest corrected history versus
+    what was actually knowable at the historical decision date.
+  </p>
+</Warning>
+
+<NextSteps currentPath="/guides/restatement-drift" />

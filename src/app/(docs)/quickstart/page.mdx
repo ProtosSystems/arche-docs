@@ -1,0 +1,237 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Quickstart',
+  description:
+    'Authenticate, resolve a company, retrieve statement versions, and run a real point-in-time Arche query.',
+  path: '/quickstart',
+})
+
+export const sections = [
+  { title: 'Step 1 - Set your API key', id: 'step-1-set-your-api-key' },
+  { title: 'Step 2 - Resolve a company', id: 'step-2-resolve-a-company' },
+  { title: 'Step 3 - Retrieve statement versions', id: 'step-3-retrieve-statement-versions' },
+  { title: 'Step 4 - Run an as_of query', id: 'step-4-run-an-asof-query' },
+  { title: 'Step 5 - Inspect the response', id: 'step-5-inspect-the-response' },
+]
+
+# Quickstart
+
+This workflow goes from authentication to a point-in-time financial query using real Arche routes.
+
+## Step 1 - Set your API key
+
+Arche authenticates requests with the `X-Api-Key` header.
+
+<CodeGroup title="Export a local API key">
+```bash
+export ARCHE_API_KEY="YOUR_API_KEY"
+```
+
+```ts
+const apiKey = process.env.ARCHE_API_KEY
+```
+
+```python
+import os
+
+api_key = os.environ["ARCHE_API_KEY"]
+```
+</CodeGroup>
+
+## Step 2 - Resolve a company
+
+Resolve a ticker to a canonical issuer record and save the `cik`.
+
+<CodeGroup title="Resolve ticker to company">
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies:resolve?ticker=MSFT" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```ts
+const resolved = await fetch(
+  'https://api.arche.fi/v1/edgar/companies:resolve?ticker=MSFT',
+  {
+    headers: {
+      'X-Api-Key': apiKey!,
+      Accept: 'application/json',
+    },
+  },
+).then((r) => r.json())
+```
+
+```python
+import requests
+
+resolved = requests.get(
+    "https://api.arche.fi/v1/edgar/companies:resolve",
+    params={"ticker": "MSFT"},
+    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    timeout=30,
+).json()
+```
+</CodeGroup>
+
+Representative response:
+
+```json
+{
+  "data": {
+    "as_of": "2026-03-01",
+    "cik": "0000789019",
+    "exchange": "NASDAQ",
+    "ticker": "MSFT"
+  }
+}
+```
+
+## Step 3 - Retrieve statement versions
+
+Once you have a `cik`, list statements for a reporting shape you care about.
+
+<CodeGroup title="List statement versions">
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies/0000789019/statements?statement_type=INCOME_STATEMENT&page=1&page_size=10" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```ts
+const statements = await fetch(
+  'https://api.arche.fi/v1/edgar/companies/0000789019/statements?statement_type=INCOME_STATEMENT&page=1&page_size=10',
+  {
+    headers: {
+      'X-Api-Key': apiKey!,
+      Accept: 'application/json',
+    },
+  },
+).then((r) => r.json())
+```
+
+```python
+statements = requests.get(
+    "https://api.arche.fi/v1/edgar/companies/0000789019/statements",
+    params={
+        "statement_type": "INCOME_STATEMENT",
+        "page": 1,
+        "page_size": 10,
+    },
+    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    timeout=30,
+).json()
+```
+</CodeGroup>
+
+The current schema defines this route as a paginated collection:
+
+- top-level fields: `items`, `page`, `page_size`, `total`
+- item type: `EdgarStatementVersionHTTP`
+- common item fields include `statement_version_id`, `statement_date`, `filing_type`, `fiscal_year`, `fiscal_period`, `statement_type`, `accepted_at`, and `is_restated`
+
+## Step 4 - Run an as_of query
+
+Ask what was knowable on a specific historical date.
+
+<CodeGroup title="Point-in-time financials">
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/as-of/2024-03-31/financials/0000320193" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "Accept: application/json"
+```
+
+```ts
+const pit = await fetch(
+  'https://api.arche.fi/v1/edgar/as-of/2024-03-31/financials/0000320193',
+  {
+    headers: {
+      'X-Api-Key': apiKey!,
+      Accept: 'application/json',
+    },
+  },
+).then((r) => r.json())
+```
+
+```python
+pit = requests.get(
+    "https://api.arche.fi/v1/edgar/as-of/2024-03-31/financials/0000320193",
+    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    timeout=30,
+).json()
+```
+</CodeGroup>
+
+## Step 5 - Inspect the response
+
+Look for point-in-time fields and version lineage, not just financial values.
+
+Schema example:
+
+```json
+{
+  "data": {
+    "_meta": {
+      "reconciliation": {
+        "cross_statement": {
+          "failed_rules": [],
+          "pass_rate": "1.0",
+          "skipped_rules": [],
+          "skipped_rules_count": 0,
+          "supported_rules_count": 2,
+          "total_rules_count": 2
+        },
+        "reconciliation_skipped_rules_count": 1,
+        "reconciliation_supported_rules_count": 4,
+        "reconciliation_total_rules_count": 5,
+        "rollforward": {
+          "failed_rules": [],
+          "pass_rate": "1.0",
+          "skipped_rules": [],
+          "skipped_rules_count": 1,
+          "supported_rules_count": 2,
+          "total_rules_count": 3
+        }
+      },
+      "trust_score": {
+        "breakdown": {
+          "cross_statement_pass_rate": "1.0",
+          "dq_evaluated_rule_count": 12,
+          "dq_not_evaluated_metric_count": 1,
+          "dq_pass_rate": "0.9167",
+          "dq_total_rule_count": 18,
+          "missing_components": [],
+          "reconciliation_skipped_rules_count": 1,
+          "reconciliation_supported_rules_count": 4,
+          "reconciliation_total_rules_count": 5,
+          "rollforward_pass_rate": "1.0"
+        },
+        "score_0_1": "0.845"
+      }
+    },
+    "as_of_date": "2024-03-31",
+    "as_of_timestamp": "2024-03-31T23:59:59.999999Z",
+    "cik": "0000320193",
+    "pointer_set": [],
+    "snapshot_hash": "b3c5b4caa72f3b6fe5ed2104399ad9c6c5f0a8e0a6e1f5e8c6b4d329b19d6a4f",
+    "statements": [],
+    "strategy_id": "accepted_at_fallback_filed_at_eod_utc_v1"
+  }
+}
+```
+
+Interpretation:
+
+- `as_of_date` tells you the historical cutoff
+- `as_of_timestamp` captures the exact point-in-time boundary
+- `pointer_set` identifies which statement versions were selected for the snapshot
+- `snapshot_hash` gives you a stable fingerprint for the returned snapshot
+
+<Tip>
+  <p>
+    A latest-state query can change after new filings arrive. Use <code>as_of</code> retrieval when
+    your workflow depends on a historical boundary.
+  </p>
+</Tip>
+
+<NextSteps currentPath="/quickstart" />

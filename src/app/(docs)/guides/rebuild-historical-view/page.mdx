@@ -1,0 +1,68 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Rebuild a historical view',
+  description:
+    'Reconstruct what a company statement looked like on a specific date using Arche company, statement, and as_of routes.',
+  path: '/guides/rebuild-historical-view',
+})
+
+export const sections = [
+  { title: 'Goal', id: 'goal' },
+  { title: 'Resolve the Issuer', id: 'resolve-the-issuer' },
+  { title: 'Inspect Statement History', id: 'inspect-statement-history' },
+  { title: 'Reconstruct the Historical Snapshot', id: 'reconstruct-the-historical-snapshot' },
+]
+
+# Rebuild a Historical View
+
+Use this workflow when you need to answer a concrete historical question such as: what did this company statement look like on a particular date?
+
+## Goal
+
+Example question:
+
+> What income statement for Apple was knowable on 2024-01-01?
+
+## Resolve the Issuer
+
+Start with the canonical company record.
+
+```http
+GET /v1/edgar/companies:resolve?ticker=AAPL
+```
+
+Persist the returned `cik`.
+
+## Inspect Statement History
+
+List statements for the issuer and filter the reporting shape you care about.
+
+```http
+GET /v1/edgar/companies/{cik}/statements?statement_type=INCOME_STATEMENT&page=1&page_size=10
+```
+
+If you need explicit change history for a reporting period, inspect the restatement timeline:
+
+```http
+GET /v1/edgar/companies/{cik}/statements/restatement-timeline?statement_type=INCOME_STATEMENT&fiscal_year=2023&fiscal_period=FY
+```
+
+## Reconstruct the Historical Snapshot
+
+Anchor the query to the historical boundary directly.
+
+```http
+GET /v1/edgar/as-of/2024-01-01/financials/{cik}
+```
+
+That response is the cleanest reconstruction of what was knowable on that date.
+
+<Warning>
+  <p>
+    Do not reconstruct the historical answer by taking the latest response today and filtering it in
+    application code. The request itself must encode the historical boundary.
+  </p>
+</Warning>
+
+<NextSteps currentPath="/guides/rebuild-historical-view" />

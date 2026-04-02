@@ -1,0 +1,96 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Authentication',
+  description:
+    'Send Arche API keys correctly, understand common auth failures, and keep credentials scoped safely.',
+  path: '/authentication',
+})
+
+export const sections = [
+  { title: 'API Keys', id: 'api-keys' },
+  { title: 'Required Header', id: 'required-header' },
+  { title: 'Authentication Failures', id: 'authentication-failures' },
+  { title: 'Operational Guidance', id: 'operational-guidance' },
+]
+
+# Authentication
+
+Arche authenticates API requests with an API key.
+
+## API Keys
+
+Use a valid Arche API key before making data-plane requests.
+
+Treat API keys like secrets:
+
+- do not commit them to source control
+- do not embed them in client-side applications
+- rotate them if they are exposed
+
+## Required Header
+
+Send your API key on every authenticated request:
+
+```http
+X-Api-Key: YOUR_API_KEY
+```
+
+Requests without a valid API key can fail with an authentication or authorization error.
+
+<CodeGroup title="Authenticated request">
+
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies:resolve?ticker=AAPL" \
+  -H "X-Api-Key: YOUR_API_KEY"
+```
+
+```ts
+const response = await fetch(
+  'https://api.arche.fi/v1/edgar/companies:resolve?ticker=AAPL',
+  {
+    headers: {
+      'X-Api-Key': process.env.ARCHE_API_KEY!,
+      Accept: 'application/json',
+    },
+  },
+)
+```
+
+```python
+import os
+import requests
+
+response = requests.get(
+    "https://api.arche.fi/v1/edgar/companies:resolve",
+    params={"ticker": "AAPL"},
+    headers={
+        "X-Api-Key": os.environ["ARCHE_API_KEY"],
+        "Accept": "application/json",
+    },
+    timeout=30,
+)
+```
+</CodeGroup>
+
+## Authentication Failures
+
+The schema documents `401` and `403` responses across authenticated routes.
+
+- Handle `401` as an authentication failure.
+- Handle `403` as an authorization failure.
+- Log the response body and any `trace_id` field when escalating an auth issue.
+
+<Warning>
+  <p>
+    Never ship Arche API keys in browser-exposed code. Keep authenticated calls on the server side
+    or in trusted internal tooling.
+  </p>
+</Warning>
+
+## Operational Guidance
+
+- Prefer server-side secret management over distributing plaintext keys to multiple operators.
+- Log request identifiers, not API keys, when troubleshooting.
+
+<NextSteps currentPath="/authentication" />

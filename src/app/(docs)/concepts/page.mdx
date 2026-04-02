@@ -1,0 +1,78 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Concepts',
+  description:
+    'Understand why Arche preserves statement lineage and how point-in-time retrieval avoids historical drift.',
+  path: '/concepts',
+})
+
+export const sections = [
+  { title: 'Historical Drift', id: 'historical-drift' },
+  { title: 'Statement Lineage', id: 'statement-lineage' },
+  { title: 'Point-in-Time Retrieval', id: 'point-in-time-retrieval' },
+  { title: 'Deterministic Research', id: 'deterministic-research' },
+]
+
+# Core Concepts
+
+Understanding Arche requires understanding how financial data evolves over time.
+
+## Historical Drift
+
+Financial statements do not stay fixed forever.
+
+They change because of:
+
+- amended filings
+- accounting corrections
+- new disclosures
+- vendor-side data revision pipelines
+
+When a dataset exposes only the latest corrected state, the same historical query can return a different answer later.
+
+## Statement Lineage
+
+Arche keeps each statement version as part of a lineage rather than overwriting prior versions.
+
+Representative progression:
+
+| Version sequence | Event              | Accepted at           |
+| ---------------- | ------------------ | --------------------- |
+| 1                | Original filing    | 2023-11-03T20:31:00Z  |
+| 2                | Restated amendment | 2024-02-12T21:02:00Z  |
+
+That lineage lets you ask both:
+
+- what is the current latest version
+- what was the known version on a specific historical date
+
+## Point-in-Time Retrieval
+
+A point-in-time query returns the state that was knowable at the specified boundary.
+
+```http
+GET /v1/edgar/as-of/2024-01-01/financials/0000320193
+```
+
+This is different from asking for the latest record today.
+
+<Tip>
+  <p>
+    Point-in-time correctness is a retrieval property, not just a timestamp field. The request must
+    constrain the historical boundary directly.
+  </p>
+</Tip>
+
+## Deterministic Research
+
+Research is deterministic when the same request yields the same historical answer later.
+
+That matters when you need to:
+
+- reproduce a backtest
+- audit an analyst workflow
+- compare research runs across time
+- explain why a company was included in a model at a historical point
+
+<NextSteps currentPath="/concepts" />

@@ -1,0 +1,86 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Versioning',
+  description:
+    'Understand Arche API versioning and the difference between latest, version history, and as_of retrieval.',
+  path: '/versioning',
+})
+
+export const sections = [
+  { title: 'API Versioning', id: 'api-versioning' },
+  { title: 'Statement Versions', id: 'statement-versions' },
+  { title: 'Latest vs as_of', id: 'latest-vs-asof' },
+  { title: 'Restatements', id: 'restatements' },
+]
+
+# Versioning
+
+Arche has two distinct kinds of versioning:
+
+- API versioning, such as `/v1`
+- data versioning, such as statement version history and point-in-time retrieval
+
+## API Versioning
+
+The public contract documented here is versioned under `/v1`.
+
+```text
+/v1/edgar/companies:resolve
+/v1/edgar/companies/{cik}/statements
+/v1/edgar/as-of/{date}/financials/{cik}
+```
+
+Treat an API version change as explicit upgrade work.
+
+## Statement Versions
+
+Arche preserves multiple versions of the same financial statement when filings are amended, corrected, or restated.
+
+Representative fields:
+
+- `statement_version_id`
+- `version_sequence`
+- `accepted_at`
+- `is_restated`
+
+The version sequence gives you an ordered lineage for the statement.
+
+## Latest vs as_of
+
+Use a latest-style collection route when you want the most current known state:
+
+```http
+GET /v1/edgar/companies/{cik}/statements?statement_type=INCOME_STATEMENT
+```
+
+Use an `as_of` route when the question is historical:
+
+```http
+GET /v1/edgar/as-of/{date}/financials/{cik}
+```
+
+<Tip>
+  <p>
+    If the answer must reflect what was knowable on a past decision date, default to
+    <code>as_of</code> retrieval rather than the latest available statement.
+  </p>
+</Tip>
+
+## Restatements
+
+Restatements produce additional statement versions for the same reporting period.
+
+Use the restatement timeline route to inspect lineage directly:
+
+```http
+GET /v1/edgar/companies/{cik}/statements/restatement-timeline?statement_type=INCOME_STATEMENT&fiscal_year=2023&fiscal_period=FY
+```
+
+That route is the cleanest way to answer:
+
+- when a value changed
+- which filing introduced the change
+- whether a query result would differ on a different date
+
+<NextSteps currentPath="/versioning" />
