@@ -38,6 +38,16 @@ The same configured schema source is also used to build API Reference search res
 `NEXT_PUBLIC_OPENAPI_URL` points to a remote schema, search indexes that remote document; otherwise
 it falls back to `public/openapi.json`.
 
+Refresh the local docs copy with:
+
+```bash
+npm run sync:openapi
+```
+
+This sync must use a raw `/openapi.json` payload from `arche_api`. Do not copy
+`../arche_api/tests/openapi/snapshots/openapi.json`; that file is normalized for contract tests and
+strips summaries, descriptions, operationIds, and examples that the docs site needs.
+
 ## Phantom endpoint check
 
 Validate that docs only mention `/v1` routes that exist in the OpenAPI schema:
