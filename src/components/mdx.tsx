@@ -45,9 +45,9 @@ function InfoIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 
 export function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] p-4 text-sm/6 text-[color:var(--docs-text)] dark:border-[color:var(--docs-border)] dark:bg-[color:var(--docs-surface)] dark:text-[color:var(--docs-text)] dark:[--tw-prose-links-hover:var(--docs-link)] dark:[--tw-prose-links:var(--docs-link)]">
+    <div className="not-prose my-6 flex gap-2.5 rounded-2xl border border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] p-4 text-sm/6 text-[color:var(--docs-text)] dark:border-[color:var(--docs-border)] dark:bg-[color:var(--docs-surface)] dark:text-[color:var(--docs-text)] dark:[--tw-prose-links-hover:var(--docs-link)] dark:[--tw-prose-links:var(--docs-link)]">
       <InfoIcon className="mt-1 h-4 w-4 flex-none fill-[color:var(--docs-link)] stroke-white dark:fill-[color:var(--docs-border)] dark:stroke-[color:var(--docs-text)]" />
-      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
+      <div className="min-w-0 flex-1 [&>*]:text-inherit [&>p]:m-0 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {children}
       </div>
     </div>
@@ -64,7 +64,7 @@ function Callout({
   return (
     <div
       className={clsx(
-        'my-6 flex gap-3 rounded-2xl border p-4 text-sm/6',
+        'not-prose my-6 flex gap-3 rounded-2xl border p-4 text-sm/6',
         tone === 'neutral' &&
           'border-[color:var(--docs-border)] bg-[color:var(--docs-surface)] text-[color:var(--docs-text)]',
         tone === 'tip' &&
@@ -74,7 +74,9 @@ function Callout({
       )}
     >
       <div className="mt-1 h-2.5 w-2.5 flex-none rounded-full bg-current opacity-70" />
-      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">{children}</div>
+      <div className="min-w-0 flex-1 [&>*]:text-inherit [&>p]:m-0 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+        {children}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { type Metadata } from 'next'
 import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/next'
 
 import { Providers } from '@/app/providers'
 import { getSiteUrl } from '@/lib/site-url'
@@ -164,6 +165,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <Providers>
           <div className="w-full">{children}</div>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
