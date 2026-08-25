@@ -61,6 +61,15 @@ That route tells you:
 - which metrics changed most across the timeline
 - how many hops exist between versions
 
+A period the filer reported once has never been restated. That returns `200`
+with an empty timeline rather than an error: `total_hops` is `0` and
+`timeline_severity` is `NONE`. Read that as "no restatement occurred", not as
+missing data. A statement identity with no versions at all returns `404`.
+
+One fiscal identity can hold several period ends, because a quarter is
+sometimes labelled FY. A timeline covers the revisions of a single period: the
+one the serving layer returns for that identity.
+
 ## Correct Workflow
 
 When the decision date matters:

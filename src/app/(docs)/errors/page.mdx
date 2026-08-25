@@ -27,6 +27,7 @@ Representative error response:
     "code": "VALIDATION_ERROR",
     "http_status": 400,
     "message": "from must be <= to",
+    "details": {},
     "trace_id": "req-123"
   }
 }
@@ -37,7 +38,11 @@ Field meanings:
 - `code`: stable machine-readable classification
 - `http_status`: HTTP status that should drive retry or fallback behavior
 - `message`: operator-facing detail for logs and debugging
+- `details`: structured context for the error, an empty object when there is none
 - `trace_id`: request identifier to include when escalating an issue
+
+Every error carries all five keys. `details` and `trace_id` are present even
+when empty or null, so one parser handles every error body.
 
 ## Status Codes
 
@@ -48,6 +53,23 @@ The public schema documents route-level error statuses including:
 - `403` for unauthorized access
 - `404` when a requested resource cannot be found
 - `429` when the request budget is exceeded
+
+## Absent Is Not Failed
+
+A request that finds nothing is answered, not failed. Two cases are easy to
+confuse and are reported differently:
+
+- A statement identity that exists but was never restated returns `200` with an
+  empty restatement timeline: `total_hops` is `0`, `by_metric` is empty and
+  `timeline_severity` is `NONE`. A filer reporting a period once is ordinary
+  history. This is also what a period returns when two versions differ in no
+  metric.
+- A statement identity with no versions at all returns `404`
+  `EDGAR_STATEMENTS_NOT_FOUND`.
+
+Neither is a server fault, and neither should be retried. Earlier releases
+reported the first case as `502`, which made ordinary reporting history look
+like an upstream outage.
 
 ## Troubleshooting
 
