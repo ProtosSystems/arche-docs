@@ -19,26 +19,41 @@ jobs:
       - name: Checkout docs repo
         uses: actions/checkout@v4
 
-      - name: Checkout arche_api
-        uses: actions/checkout@v4
-        with:
-          repository: ProtosSystems/arche-api
-          ref: main
-          token: ${{ secrets.ARCHEREPO_READ_TOKEN != '' && secrets.ARCHEREPO_READ_TOKEN || github.token }}
-          path: arche_api
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install arche_api dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r arche_api/requirements.txt
-
+      # Validated against the schema this site publishes at /openapi.json and
+      # renders as the API reference, so the check needs nothing outside this
+      # repo. It previously cloned the private arche-api with a token that is
+      # not configured, which failed on every run. Refresh the schema with
+      # scripts/sync_openapi_snapshot.py when the API changes.
       - name: Validate docs endpoints
         run: |
           python3 scripts/check_phantom_endpoints.py \
-            --docs-root src/app/docs \
-            --arche-api-root arche_api
+            --docs-root 'src/app/(docs)' \
+            --openapi-path public/openapi.json
+
+  docs-integrity:
+    name: Docs integrity check
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check docs integrity
+        run: node scripts/check_docs_integrity.mjs
+
+      - name: Build
+        run: npx next build --no-lint
