@@ -32,6 +32,21 @@ Recommended handling:
 - Cache stable lookup results such as company resolution where appropriate.
 - Separate interactive traffic from large historical extraction jobs.
 
+## Response Cost
+
+Routes differ in how much work one request represents, which matters more than
+request count when planning a job.
+
+- A metric time series covers a company's whole reporting history in one
+  request. It resolves in a fixed number of queries regardless of how many
+  years it spans, so requesting a longer history costs little more than a
+  shorter one. Prefer one wide request over a year-by-year loop.
+- Listings return metadata rather than payloads. Narrative disclosure listings
+  carry each disclosure's `char_count` instead of its text, because a single
+  filing can hold hundreds of kilobytes across its text blocks. Read the text
+  one disclosure at a time, and use `char_count` to decide what is worth
+  fetching.
+
 <Warning>
   <p>
     Do not hardcode assumptions about rate-limit header names or window sizes unless you have

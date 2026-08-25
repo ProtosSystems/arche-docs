@@ -69,8 +69,31 @@ Key fields:
 - `accepted_at`
 - `is_restated`
 - `source_filing`
+- `accounting_standard`
 
 Versions are immutable.
+
+### Accounting Standard
+
+`accounting_standard` reports the standard a filing was prepared under, derived
+from the taxonomy the filer actually tagged. It is `US_GAAP` for domestic
+filers and `IFRS` for foreign private issuers filing on 20-F or 40-F, which tag
+`ifrs-full` concepts.
+
+Judge it per filing rather than per company. A filer can change standard, so a
+company's history can contain both, and comparing a company's lifetime against
+a single standard will misreport it.
+
+### Fiscal Identity
+
+A statement's `fiscal_year` and `fiscal_period` follow the filer's own annual
+close, not the calendar. A company whose fiscal year ends in September reports
+a September period as `FY`, and its fiscal year can differ from the calendar
+year the period ends in.
+
+Rows sharing one fiscal identity can carry different period ends, because a
+quarter is sometimes labelled `FY`. Keep `statement_date` alongside the fiscal
+identity when a specific period end matters.
 
 <Tip>
   <p>
