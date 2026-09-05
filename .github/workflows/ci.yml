@@ -86,14 +86,21 @@ jobs:
         id: fetch
         env:
           GH_TOKEN: ${{ secrets.ARCHE_API_TOKEN }}
-          ARCHE_API_REPO: ${{ vars.ARCHE_API_REPO || 'protos-systems/arche-api' }}
+          ARCHE_API_REPO: ${{ vars.ARCHE_API_REPO || 'ProtosSystems/arche-api' }}
         run: |
           if [ -z "${GH_TOKEN}" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning::ARCHE_API_TOKEN is not configured; cannot compare against arche-api."
             exit 0
           fi
-          run_id="$(gh run list --repo "$ARCHE_API_REPO" --workflow publish-openapi.yml             --branch main --status success --limit 1 --json databaseId             --jq '.[0].databaseId')"
+          run_id="$(gh run list \
+            --repo "$ARCHE_API_REPO" \
+            --workflow publish-openapi.yml \
+            --branch main \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')"
           if [ -z "$run_id" ]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No successful publish-openapi run found on ${ARCHE_API_REPO}@main."
