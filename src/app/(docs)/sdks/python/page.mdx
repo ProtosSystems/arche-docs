@@ -1,0 +1,210 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Python SDK',
+  description:
+    'Install and use the typed Arche Python SDK for company resolution, statements, and point-in-time queries.',
+  path: '/sdks/python',
+})
+
+export const sections = [
+  { title: 'Install', id: 'install' },
+  { title: 'Create a Client', id: 'create-a-client' },
+  { title: 'Resources', id: 'resources' },
+  { title: 'The Quickstart Flow in Python', id: 'the-quickstart-flow-in-python' },
+  { title: 'Pagination', id: 'pagination' },
+  { title: 'Request IDs', id: 'request-ids' },
+  { title: 'Error Handling', id: 'error-handling' },
+]
+
+# Python SDK
+
+The Arche Python SDK wraps the same public routes documented in the
+[API reference](/reference) with typed models, pagination helpers, and
+structured errors. It is the recommended integration path for production
+workloads.
+
+## Install
+
+```bash
+pip install arche-sdk
+```
+
+## Create a Client
+
+The client is a context manager. It holds a connection pool, so create one and
+reuse it rather than constructing a client per request.
+
+```python
+import os
+
+from arche_sdk import ArcheClient
+
+with ArcheClient(api_key=os.environ["ARCHE_API_KEY"]) as client:
+    company = client.companies.get("0000320193")
+    print(company.entity_name)
+```
+
+<Properties>
+  <Property name="api_key" type="str | None">
+    Sent as the `X-Api-Key` header. Create one in the
+    [developer portal](https://app.arche.fi/keys).
+  </Property>
+  <Property name="base_url" type="str">
+    Defaults to `https://api.arche.fi`.
+  </Property>
+  <Property name="timeout_seconds" type="float">
+    Per-request timeout. Defaults to `30.0`.
+  </Property>
+  <Property name="http_client" type="httpx.Client | None">
+    Supply your own transport when you need custom retries, proxies, or
+    connection limits.
+  </Property>
+</Properties>
+
+<Note>
+  <p>
+    Pass exactly one credential. Supplying both <code>api_key</code> and
+    <code>bearer_token</code> raises an error rather than silently picking one.
+  </p>
+</Note>
+
+## Resources
+
+The client exposes four resource groups:
+
+<Properties>
+  <Property name="client.companies" type="resource">
+    Resolve tickers to canonical issuers, read company profiles, and check
+    reporting completeness.
+  </Property>
+  <Property name="client.filings" type="resource">
+    List filings for a company, read one filing, and list the statements it
+    contains.
+  </Property>
+  <Property name="client.statements" type="resource">
+    Statement versions, restatement timelines and deltas, reconciliation,
+    data-quality overlays, derived metrics, and point-in-time financials.
+  </Property>
+  <Property name="client.narratives" type="resource">
+    Narrative disclosures attached to filings.
+  </Property>
+</Properties>
+
+## The Quickstart Flow in Python
+
+This mirrors the [Quickstart](/quickstart) step for step.
+
+```python
+import os
+
+from arche_sdk import ArcheClient
+
+with ArcheClient(api_key=os.environ["ARCHE_API_KEY"]) as client:
+    # Step 2 - resolve a ticker to a canonical CIK
+    resolved = client.companies.resolve("MSFT")
+
+    # Step 3 - list statement versions for that issuer
+    statements = client.statements.list(
+        resolved.cik,
+        statement_type="INCOME_STATEMENT",
+        page=1,
+        page_size=10,
+    )
+    print(statements.total, "statement versions")
+
+    # Step 4 - ask what was knowable on a historical date
+    point_in_time = client.statements.get_as_of_financials(
+        "2024-03-31",
+        "0000320193",
+    )
+    print(point_in_time.snapshot_hash)
+```
+
+Derived metrics come from the same resource:
+
+```python
+series = client.statements.get_derived_metrics_time_series(
+    ciks=["0000320193"],
+    statement_type="INCOME_STATEMENT",
+    metrics=["GROSS_MARGIN"],
+    frequency="annual",
+)
+print(len(series.points))
+```
+
+## Pagination
+
+Collection methods return a typed `Page` with `page`, `page_size`, `total`,
+`items`, and a `has_next` property.
+
+```python
+page = client.statements.list("0000320193", statement_type="INCOME_STATEMENT")
+
+while True:
+    for version in page.items:
+        print(version.fiscal_year, version.fiscal_period)
+    if not page.has_next:
+        break
+    page = client.statements.list(
+        "0000320193",
+        statement_type="INCOME_STATEMENT",
+        page=page.page + 1,
+    )
+```
+
+For straightforward full scans, `iter_all` handles the loop and yields items
+across page boundaries:
+
+```python
+for version in client.statements.iter_all("0000320193", statement_type="INCOME_STATEMENT"):
+    print(version.fiscal_year, version.fiscal_period)
+```
+
+See [Pagination](/pagination) for the underlying wire contract and
+[Rate limits](/rate-limits) for guidance on how aggressively to iterate.
+
+## Request IDs
+
+The SDK sends an `X-Request-ID` header on every request, generating a UUID when
+you do not supply one. Pass your own to correlate an API call with a job or task
+in your own system:
+
+```python
+from arche_sdk import RequestOptions
+
+company = client.companies.get(
+    "0000320193",
+    options=RequestOptions(request_id="nightly-refresh-2026-03-01"),
+)
+```
+
+`RequestOptions` also accepts `headers` and `timeout_seconds` for per-request
+overrides. See [Request IDs](/troubleshooting/request-ids) for how these values
+are used when escalating a failure.
+
+## Error Handling
+
+Failures raise typed exceptions. `APIError` is the base for any error the API
+reported, and the subclasses map to HTTP status classes: `AuthenticationError`,
+`PermissionDeniedError`, `NotFoundError`, `ValidationError`, `ConflictError`,
+`RateLimitError`, and `ServerError`. Transport failures raise `ConnectionError`
+or `TimeoutError` instead.
+
+```python
+from arche_sdk import ArcheClient, APIError, RateLimitError
+
+try:
+    with ArcheClient(api_key=os.environ["ARCHE_API_KEY"]) as client:
+        client.companies.get("0000000000")
+except RateLimitError:
+    ...  # back off, then retry
+except APIError as exc:
+    print(exc.status_code, exc.code, exc.trace_id, exc.request_id)
+```
+
+Every `APIError` carries both identifiers: `request_id` is the value the SDK
+sent, and `trace_id` is the one Arche returned in the
+[error envelope](/errors). Log both.
+
+<NextSteps currentPath="/sdks/python" />

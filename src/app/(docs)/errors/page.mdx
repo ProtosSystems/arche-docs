@@ -39,10 +39,15 @@ Field meanings:
 - `http_status`: HTTP status that should drive retry or fallback behavior
 - `message`: operator-facing detail for logs and debugging
 - `details`: structured context for the error, an empty object when there is none
-- `trace_id`: request identifier to include when escalating an issue
+- `trace_id`: Arche-generated request identifier to include when escalating an issue
 
 Every error carries all five keys. `details` and `trace_id` are present even
 when empty or null, so one parser handles every error body.
+
+If you sent an `X-Request-ID` header, Arche echoes it back on the response, so a
+failed call has two identifiers: yours and ours. See
+[Request IDs](/troubleshooting/request-ids) for how to set them and which to
+quote when escalating.
 
 ## Status Codes
 
@@ -73,10 +78,11 @@ like an upstream outage.
 
 ## Troubleshooting
 
-- Log the request path, query parameters, response status, and `trace_id`.
+- Log the request path, query parameters, response status, `trace_id`, and the `X-Request-ID` you sent.
 - Treat `400` responses as caller bugs to be fixed before retry.
 - Treat `429` responses as backoff signals rather than permanent failures.
 - Preserve the original request inputs when debugging point-in-time discrepancies.
+- Follow [Request IDs](/troubleshooting/request-ids) when you need to escalate.
 
 <Warning>
   <p>

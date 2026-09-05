@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Iterable
 
 DEFAULT_DOCS_ROOT = Path("src/app/(docs)")
-DEFAULT_ARCHE_API_ROOT = Path("../arche_api")
+DEFAULT_ARCHE_API_ROOT = Path("../arche-api")
 DEFAULT_OPENAPI_SNAPSHOT = DEFAULT_ARCHE_API_ROOT / "tests/openapi/snapshots/openapi.json"
 
 METHOD_PATTERN = re.compile(r"\b(?:GET|POST|PUT|PATCH|DELETE)\s+(/v1/[^\s`\"')>]+)")
@@ -51,7 +51,7 @@ def _load_openapi(schema_path: Path | None, arche_api_root: Path | None) -> dict
         arche_api_root = DEFAULT_ARCHE_API_ROOT
     if not arche_api_root.exists():
         raise FileNotFoundError(
-            "OpenAPI schema not found. Provide --openapi-path or ensure ../arche_api exists.",
+            "OpenAPI schema not found. Provide --openapi-path or ensure ../arche-api exists.",
         )
     return _load_openapi_from_arche_api(arche_api_root)
 

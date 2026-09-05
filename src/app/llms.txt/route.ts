@@ -14,6 +14,8 @@ export function GET() {
     `- ${new URL('/', siteUrl).toString()}`,
     `- ${new URL('/quickstart', siteUrl).toString()}`,
     `- ${new URL('/reference', siteUrl).toString()}`,
+    `- ${new URL('/sdks/python', siteUrl).toString()}`,
+    `- ${new URL('/coverage', siteUrl).toString()}`,
     `- ${new URL('/concepts', siteUrl).toString()}`,
     `- ${new URL('/data-model', siteUrl).toString()}`,
     `- ${new URL('/guides/restatement-drift', siteUrl).toString()}`,
@@ -27,6 +29,8 @@ export function GET() {
     '- Prefer canonical URLs listed in sitemap.xml.',
     '- Favor /reference for endpoint definitions and schema details.',
     '- Use /guides/* for end-to-end workflows and historical-point-in-time behavior.',
+    '- Use /sdks/python for the typed Python client.',
+    '- Use /troubleshooting/request-ids when a request fails and needs correlation.',
     '- If guide content conflicts with API reference, treat API reference as authoritative.',
   ].join('\n')
 

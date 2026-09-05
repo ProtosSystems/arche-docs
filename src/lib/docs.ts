@@ -1,6 +1,6 @@
 import { type Metadata } from 'next'
 
-type DocCategory = 'get-started' | 'core-concepts' | 'guides' | 'api'
+type DocCategory = 'get-started' | 'core-concepts' | 'guides' | 'sdks' | 'api'
 
 export type DocEntry = {
   title: string
@@ -86,6 +86,13 @@ export const docsNavigation: NavGroup[] = [
           'Use page-based collection endpoints predictably and at scale.',
         category: 'core-concepts',
       },
+      {
+        title: 'Coverage and data quality',
+        href: '/coverage',
+        description:
+          'Check what is covered for a company or metric, and read the quality signals on a statement.',
+        category: 'core-concepts',
+      },
     ],
   },
   {
@@ -122,6 +129,18 @@ export const docsNavigation: NavGroup[] = [
     ],
   },
   {
+    title: 'SDKs',
+    links: [
+      {
+        title: 'Python SDK',
+        href: '/sdks/python',
+        description:
+          'Install the typed Python client and run the quickstart flow in code.',
+        category: 'sdks',
+      },
+    ],
+  },
+  {
     title: 'API',
     links: [
       {
@@ -136,6 +155,13 @@ export const docsNavigation: NavGroup[] = [
         href: '/errors',
         description:
           'Interpret machine-readable error responses and troubleshoot failed requests.',
+        category: 'api',
+      },
+      {
+        title: 'Request IDs',
+        href: '/troubleshooting/request-ids',
+        description:
+          'Correlate a failed request across your logs, the API response, and the portal.',
         category: 'api',
       },
       {

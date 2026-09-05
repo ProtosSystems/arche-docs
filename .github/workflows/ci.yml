@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch: {}
+  schedule:
+    # Surface upstream API drift even when nobody opens a PR.
+    - cron: '17 6 * * *'
 
 permissions:
   contents: read
@@ -57,3 +60,64 @@ jobs:
 
       - name: Build
         run: npx next build --no-lint
+
+  schema-drift:
+    name: Published schema vs arche-api
+    runs-on: ubuntu-22.04
+
+    # The phantom-endpoint job validates docs against public/openapi.json, which
+    # is the schema this site publishes. That cannot detect public/openapi.json
+    # itself falling behind arche-api, so this job compares the two.
+    #
+    # arche-api is private, so the comparison needs ARCHE_API_TOKEN (a token with
+    # actions:read on the API repo). Without it this job reports INCONCLUSIVE
+    # rather than passing quietly - a green check here must mean the comparison
+    # actually ran.
+    steps:
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download schema published by arche-api
+        id: fetch
+        env:
+          GH_TOKEN: ${{ secrets.ARCHE_API_TOKEN }}
+          ARCHE_API_REPO: ${{ vars.ARCHE_API_REPO || 'protos-systems/arche-api' }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ARCHE_API_TOKEN is not configured; cannot compare against arche-api."
+            exit 0
+          fi
+          run_id="$(gh run list --repo "$ARCHE_API_REPO" --workflow publish-openapi.yml             --branch main --status success --limit 1 --json databaseId             --jq '.[0].databaseId')"
+          if [ -z "$run_id" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No successful publish-openapi run found on ${ARCHE_API_REPO}@main."
+            exit 0
+          fi
+          gh run download "$run_id" --repo "$ARCHE_API_REPO" --name openapi-schema --dir reference
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Compare published schema against arche-api
+        if: steps.fetch.outputs.available == 'true'
+        run: |
+          python3 scripts/check_openapi_drift.py \
+            --published public/openapi.json \
+            --source reference/openapi.json
+
+      - name: Report inconclusive
+        if: steps.fetch.outputs.available != 'true'
+        run: |
+          {
+            echo "### Schema drift check: INCONCLUSIVE"
+            echo
+            echo "Could not obtain a reference schema from arche-api, so"
+            echo "\`public/openapi.json\` was **not** verified against the API."
+            echo
+            echo "Configure the \`ARCHE_API_TOKEN\` secret to enable this check."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::Schema drift check did not run. public/openapi.json is unverified."

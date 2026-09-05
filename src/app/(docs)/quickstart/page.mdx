@@ -21,7 +21,8 @@ This workflow goes from authentication to a point-in-time financial query using 
 
 ## Step 1 - Set your API key
 
-Arche authenticates requests with the `X-Api-Key` header.
+Create a key in the [developer portal](https://app.arche.fi/keys?ref=quickstart),
+then export it locally. Arche authenticates requests with the `X-Api-Key` header.
 
 <CodeGroup title="Export a local API key">
 ```bash
@@ -39,6 +40,11 @@ api_key = os.environ["ARCHE_API_KEY"]
 ```
 </CodeGroup>
 
+Every example below also sends `X-Request-ID`. It is optional, but it is what
+lets you correlate a failed call with your own logs later — see
+[Request IDs](/troubleshooting/request-ids).
+
+
 ## Step 2 - Resolve a company
 
 Resolve a ticker to a canonical issuer record and save the `cik`.
@@ -47,6 +53,7 @@ Resolve a ticker to a canonical issuer record and save the `cik`.
 ```bash
 curl -X GET "https://api.arche.fi/v1/edgar/companies:resolve?ticker=MSFT" \
   -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
   -H "Accept: application/json"
 ```
 
@@ -56,6 +63,7 @@ const resolved = await fetch(
   {
     headers: {
       'X-Api-Key': apiKey!,
+      'X-Request-ID': crypto.randomUUID(),
       Accept: 'application/json',
     },
   },
@@ -64,11 +72,16 @@ const resolved = await fetch(
 
 ```python
 import requests
+import uuid
 
 resolved = requests.get(
     "https://api.arche.fi/v1/edgar/companies:resolve",
     params={"ticker": "MSFT"},
-    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    headers={
+        "X-Api-Key": api_key,
+        "X-Request-ID": str(uuid.uuid4()),
+        "Accept": "application/json",
+    },
     timeout=30,
 ).json()
 ```
@@ -95,6 +108,7 @@ Once you have a `cik`, list statements for a reporting shape you care about.
 ```bash
 curl -X GET "https://api.arche.fi/v1/edgar/companies/0000789019/statements?statement_type=INCOME_STATEMENT&page=1&page_size=10" \
   -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
   -H "Accept: application/json"
 ```
 
@@ -104,6 +118,7 @@ const statements = await fetch(
   {
     headers: {
       'X-Api-Key': apiKey!,
+      'X-Request-ID': crypto.randomUUID(),
       Accept: 'application/json',
     },
   },
@@ -118,7 +133,11 @@ statements = requests.get(
         "page": 1,
         "page_size": 10,
     },
-    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    headers={
+        "X-Api-Key": api_key,
+        "X-Request-ID": str(uuid.uuid4()),
+        "Accept": "application/json",
+    },
     timeout=30,
 ).json()
 ```
@@ -138,6 +157,7 @@ Ask what was knowable on a specific historical date.
 ```bash
 curl -X GET "https://api.arche.fi/v1/edgar/as-of/2024-03-31/financials/0000320193" \
   -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
   -H "Accept: application/json"
 ```
 
@@ -147,6 +167,7 @@ const pit = await fetch(
   {
     headers: {
       'X-Api-Key': apiKey!,
+      'X-Request-ID': crypto.randomUUID(),
       Accept: 'application/json',
     },
   },
@@ -156,7 +177,11 @@ const pit = await fetch(
 ```python
 pit = requests.get(
     "https://api.arche.fi/v1/edgar/as-of/2024-03-31/financials/0000320193",
-    headers={"X-Api-Key": api_key, "Accept": "application/json"},
+    headers={
+        "X-Api-Key": api_key,
+        "X-Request-ID": str(uuid.uuid4()),
+        "Accept": "application/json",
+    },
     timeout=30,
 ).json()
 ```

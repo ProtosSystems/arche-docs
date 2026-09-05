@@ -20,6 +20,10 @@ yarn-error.log*
 .idea/
 
 # misc
-coverage/
+# Anchored: src/app/(docs)/coverage/ is a docs page, not a coverage report.
+/coverage/
 *.tsbuildinfo
 .turbo/
+
+# transient reference schema from scripts/check_openapi_drift.py
+.openapi-reference.json
