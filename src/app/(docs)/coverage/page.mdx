@@ -1,0 +1,204 @@
+import { createDocMetadata } from '@/lib/docs'
+
+export const metadata = createDocMetadata({
+  title: 'Coverage and data quality',
+  description:
+    'Check what Arche covers for a company or metric, and read the quality signals attached to a statement before you rely on it.',
+  path: '/coverage',
+})
+
+export const sections = [
+  { title: 'Check Coverage First', id: 'check-coverage-first' },
+  { title: 'Company Coverage', id: 'company-coverage' },
+  { title: 'Metric Coverage', id: 'metric-coverage' },
+  { title: 'Data-Quality Issues', id: 'data-quality-issues' },
+  { title: 'Reconciliation', id: 'reconciliation' },
+  { title: 'Deterministic Replay', id: 'deterministic-replay' },
+]
+
+# Coverage and data quality
+
+Arche reports what it has and how good it is, rather than making you infer
+coverage from empty responses. A request that finds nothing is answered, not
+failed — so before treating an empty result as a gap in the market, check
+whether it is a gap in coverage.
+
+## Check Coverage First
+
+Two questions have separate endpoints:
+
+<Properties>
+  <Property name="What do you have for this company?" type="/v1/coverage/companies/{cik}">
+    Company-level coverage and completeness for one issuer.
+  </Property>
+  <Property name="What do you have for this metric?" type="/v1/coverage/metrics/{metric}">
+    Coverage and completeness for one canonical metric across the corpus.
+  </Property>
+</Properties>
+
+Both are cheap relative to a full extraction job, so it is worth querying them
+at the start of a backfill rather than discovering the boundary partway through.
+
+## Company Coverage
+
+Retrieve the coverage summary for a single issuer:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/coverage/companies/0000320193" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+List coverage across issuers with deterministic ordering — `cik` ascending,
+tie-broken on the canonical company row — using the standard
+[paginated envelope](/pagination):
+
+```bash
+curl -X GET "https://api.arche.fi/v1/coverage/companies?page=1&page_size=50" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+For a narrower question — the latest filing on record and statement-version
+counts by type — use the company completeness summary:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies/0000320193/completeness" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+## Metric Coverage
+
+Coverage for one canonical metric across the corpus:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/coverage/metrics/GROSS_MARGIN" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+Population statistics are scoped to a cohort and a filing form type, so both
+parameters are required:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/coverage/metrics?cohort=sp500&form_type=10-K" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+Results are ordered `statement_type`, then `fiscal_period`, then `metric_name`,
+all ascending.
+
+## Data-Quality Issues
+
+Persisted data-quality issues are queryable directly. Ordering is deterministic:
+severity descending, then `cik`, `fiscal_year`, `fiscal_period`, `rule_code`,
+and `issue_id` ascending, with nulls last on the fiscal fields.
+
+```bash
+curl -X GET "https://api.arche.fi/v1/data-quality/issues" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+To see quality signals in the context of the statement they describe, request
+the normalized statement with its DQ overlay. This identifies a statement by its
+full identity, not just the company:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/companies/0000320193/statements/dq/overlay?statement_type=INCOME_STATEMENT&fiscal_year=2023&fiscal_period=FY&version_sequence=1" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+<Note>
+  <p>
+    When a statement identity is genuinely ambiguous, the API returns
+    <code>EDGAR_STATEMENT_AMBIGUOUS</code> rather than picking a row for you.
+    Narrow the identity instead of retrying.
+  </p>
+</Note>
+
+## Reconciliation
+
+Reconciliation checks answer whether a statement is internally consistent —
+whether the parts sum, and whether balances roll forward.
+
+For one statement identity:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/reconciliation/ledger?cik=0000320193&statement_type=INCOME_STATEMENT&fiscal_year=2023&fiscal_period=FY&version_sequence=1" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+For PASS, WARN, and FAIL counts by category across a multi-year window:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/edgar/reconciliation/summary?cik=0000320193&statement_type=INCOME_STATEMENT&fiscal_year_from=2019&fiscal_year_to=2023" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+The point-in-time financials response embeds a condensed version of these
+signals under `_meta.reconciliation` and `_meta.trust_score`, so a single
+[as_of query](/quickstart) tells you both what was knowable and how well it
+reconciles.
+
+## Deterministic Replay
+
+Supported queries can be executed through a deterministic endpoint that computes
+immutable manifest hashes and persists replay metadata:
+
+```bash
+curl -X POST "https://api.arche.fi/v1/query/execute" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "query_type": "financial_state_time_series",
+    "as_of_date": "2025-03-31",
+    "include_result": true,
+    "parameters": {
+      "cik": "0000320193",
+      "fiscal_year_from": 2023,
+      "fiscal_year_to": 2024,
+      "period_type": "annual",
+      "page": 1,
+      "page_size": 50
+    }
+  }'
+```
+
+`query_type` is required; `parameters` carries the transport-agnostic arguments
+for that query type, and `as_of_date` applies the no-lookahead boundary.
+
+The returned replay token can be looked up later:
+
+```bash
+curl -X GET "https://api.arche.fi/v1/query/replay/REPLAY_TOKEN" \
+  -H "X-Api-Key: $ARCHE_API_KEY" \
+  -H "X-Request-ID: $(uuidgen)" \
+  -H "Accept: application/json"
+```
+
+<Warning>
+  <p>
+    Replay lookup currently operates in stored-manifest mode. It returns the
+    recorded manifest metadata for the token and does not re-execute the
+    original query.
+  </p>
+</Warning>
+
+<NextSteps currentPath="/coverage" />

@@ -16,9 +16,9 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_SOURCE = Path("../arche_api/openapi.json")
+DEFAULT_SOURCE = Path("../arche-api/openapi.json")
 DEFAULT_DEST = Path("public/openapi.json")
-DEFAULT_ARCHE_API_ROOT = Path("../arche_api")
+DEFAULT_ARCHE_API_ROOT = Path("../arche-api")
 
 
 def _set_stable_env() -> None:

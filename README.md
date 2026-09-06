@@ -27,6 +27,7 @@ Current top-level sections:
 - Get started
 - Core concepts
 - Guides
+- SDKs
 - API
 
 ## OpenAPI reference
@@ -55,6 +56,22 @@ Validate that docs only mention `/v1` routes that exist in the OpenAPI schema:
 ```bash
 npm run check:phantom-endpoints
 ```
+
+## Schema drift check
+
+The phantom endpoint check validates prose against `public/openapi.json` — the
+schema this site publishes — so it cannot tell when that file has itself fallen
+behind `arche-api`. This check closes that loop:
+
+```bash
+npm run check:openapi-drift -- --arche-api-root ../arche-api
+```
+
+It exits `0` in sync, `1` on drift, and `2` when no reference schema was
+available. Exit `2` means the comparison was inconclusive, not that it passed.
+In CI the reference comes from the `openapi-schema` artifact published by
+`arche-api`, which requires the `ARCHE_API_TOKEN` secret; without it the job
+reports INCONCLUSIVE rather than going quietly green.
 
 ## Customizing
 
