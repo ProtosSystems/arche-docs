@@ -69,8 +69,9 @@ npm run check:openapi-drift -- --arche-api-root ../arche-api
 
 It exits `0` in sync, `1` on drift, and `2` when no reference schema was
 available. Exit `2` means the comparison was inconclusive, not that it passed.
-In CI the reference comes from the `openapi-schema` artifact published by
-`arche-api`, which requires the `ARCHE_API_TOKEN` secret; without it the job
+In CI the reference is `openapi.json`, which `arche-api` commits at its
+repository root and keeps current with a test. Reading it requires the
+`ARCHE_API_TOKEN` secret (`contents:read` on the API repo); without it the job
 reports INCONCLUSIVE rather than going quietly green.
 
 ## Customizing
