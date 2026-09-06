@@ -106,7 +106,16 @@ def _diff(published: dict[str, Any], reference: dict[str, Any]) -> list[str]:
 
 
 def _reference_from_arche_api(root: Path) -> dict[str, Any]:
-    """Generate a raw schema by delegating to the existing sync script."""
+    """Read arche-api's committed schema, falling back to generating one.
+
+    arche-api commits its raw schema at `openapi.json` and a test there keeps it
+    current, so reading the file is both cheaper and closer to what CI compares
+    against. Older checkouts predate that file; those still get regenerated.
+    """
+    committed = root / "openapi.json"
+    if committed.exists():
+        return json.loads(committed.read_text(encoding="utf-8"))
+
     script = Path(__file__).with_name("sync_openapi_snapshot.py")
     tmp = Path(".openapi-reference.json")
     try:
