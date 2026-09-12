@@ -38,7 +38,6 @@ async function main() {
 
   const allowedAbsolute = new Set([
     ...routesOnDisk,
-    '/access',
     '/llms.txt',
     '/llms-full.txt',
     '/robots.txt',
@@ -83,6 +82,21 @@ async function main() {
   )
   if (staleDocsRefs.length) {
     problems.push(`Found stale /docs/ references in: ${staleDocsRefs.join(', ')}`)
+  }
+
+  // These docs are public. A password gate here redirects every page to a login
+  // screen, which is what a payment provider's domain review reads as a site
+  // that is not really there -- and it is linked from the portal landing page
+  // that exists to pass that review.
+  for (const gate of [
+    'middleware.ts',
+    'src/lib/access-auth.ts',
+    'src/app/access/page.tsx',
+    'src/app/api/access-login/route.ts',
+  ]) {
+    if (fs.existsSync(gate)) {
+      problems.push(`Docs must stay publicly reachable; found an access gate: ${gate}`)
+    }
   }
 
   if (problems.length) {
