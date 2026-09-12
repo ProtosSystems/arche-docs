@@ -83,6 +83,17 @@ def _fetch_raw_openapi(arche_api_root: Path) -> dict:
     if not arche_api_root.exists():
         raise FileNotFoundError(f"arche_api root not found: {arche_api_root}")
 
+    # arche-api commits its raw schema and a test there keeps it current, so
+    # prefer the file. Importing the app instead requires arche-api's full
+    # dependency set to be installed in whatever interpreter runs this script,
+    # which is not true from a plain arche-docs checkout.
+    committed = arche_api_root / "openapi.json"
+    if committed.exists():
+        payload = _load_json(committed)
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"Unexpected OpenAPI payload in {committed}")
+        return payload
+
     from fastapi.testclient import TestClient
 
     sys.path.insert(0, str(arche_api_root))

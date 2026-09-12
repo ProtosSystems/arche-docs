@@ -10,6 +10,7 @@ export const metadata = createDocMetadata({
 export const sections = [
   { title: 'Error Envelope', id: 'error-envelope' },
   { title: 'Status Codes', id: 'status-codes' },
+  { title: 'Plan Limits Return 403', id: 'plan-limits-return-403' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
 ]
 
@@ -55,9 +56,40 @@ The public schema documents route-level error statuses including:
 
 - `400` for invalid parameters or malformed requests
 - `401` for missing or invalid authentication
-- `403` for unauthorized access
+- `403` for unauthorized access, and for anything your plan does not include
 - `404` when a requested resource cannot be found
 - `429` when the request budget is exceeded
+
+## Plan Limits Return 403
+
+A capability your plan does not include returns `403` with the code
+`FEATURE_NOT_AVAILABLE`, not an empty result. The `details` name what is
+required and what you hold:
+
+```json
+{
+  "error": {
+    "code": "FEATURE_NOT_AVAILABLE",
+    "http_status": 403,
+    "message": "This feature requires the growth plan or higher.",
+    "details": { "required_tier": "growth", "current_tier": "developer" },
+    "trace_id": "…"
+  }
+}
+```
+
+This covers two cases that look different but are the same refusal:
+
+- an endpoint your plan does not include, such as deterministic replay below
+  Growth
+- a **company outside your plan's coverage** — Free covers the Dow 30 and
+  Developer the S&P 500, so a request for any other filer is refused rather
+  than answered empty
+
+Treat it as a configuration outcome, not a transient failure. Retrying will not
+change it, and an empty-result fallback will silently hide it. Branch on
+`details.required_tier` if you need to surface an upgrade path. See
+[Rate limits](/rate-limits) for what each plan includes.
 
 ## Absent Is Not Failed
 

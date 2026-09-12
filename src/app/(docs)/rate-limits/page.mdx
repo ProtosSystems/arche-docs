@@ -3,34 +3,98 @@ import { createDocMetadata } from '@/lib/docs'
 export const metadata = createDocMetadata({
   title: 'Rate limits',
   description:
-    'Handle Arche throttling responses safely and build clients that back off under load.',
+    'What your plan allows per minute, the headers that report it, and how to back off correctly.',
   path: '/rate-limits',
 })
 
 export const sections = [
+  { title: 'Response Headers', id: 'response-headers' },
+  { title: 'What Your Plan Allows', id: 'what-your-plan-allows' },
   { title: '429 Handling', id: '429-handling' },
   { title: 'Client Strategy', id: 'client-strategy' },
+  { title: 'Response Cost', id: 'response-cost' },
 ]
 
 # Rate limits
 
-The public schema documents `429` responses on the authenticated routes covered in these docs.
+Rate limits are applied **per organization**, not per API key. Issuing more keys
+spreads work across services; it does not raise your throughput. Each key also
+carries the same per-key ceiling, so one runaway worker cannot starve the rest
+of your integration.
+
+## Response Headers
+
+Every response carries your current budget, whether or not it succeeded:
+
+<Properties>
+  <Property name="X-RateLimit-Limit" type="integer">
+    Requests allowed in the current window for this endpoint class.
+  </Property>
+  <Property name="X-RateLimit-Remaining" type="integer">
+    Requests left in the current window.
+  </Property>
+  <Property name="X-RateLimit-Reset" type="unix timestamp">
+    When the current window resets.
+  </Property>
+  <Property name="Retry-After" type="seconds">
+    Sent on `429` only. Wait this long before retrying.
+  </Property>
+</Properties>
+
+Read these rather than inferring your budget from failures. `Retry-After` is
+authoritative on a `429` — prefer it over a fixed backoff schedule.
+
+## What Your Plan Allows
+
+Limits differ by endpoint class, because a modeling or ingestion call costs far
+more to serve than a read. All windows are 60 seconds.
+
+| Plan | Read | Modeling | Ingestion | MCP |
+| --- | --- | --- | --- | --- |
+| Free | 60 | 30 | — | — |
+| Developer | 300 | 150 | 30 | 150 |
+| Growth | 1,200 | 600 | 150 | 600 |
+| Scale | 3,000 | 1,500 | 600 | 1,500 |
+| Enterprise | 10,000 | 5,000 | 2,000 | 5,000 |
+
+Reads cover company resolution, statements, filings, coverage, and
+point-in-time queries — the bulk of most integrations. Negotiated agreements
+may carry different limits; your entitlement is authoritative and is reported
+in the developer portal.
+
+<Note>
+  <p>
+    Plans also differ in how many companies you may query. Free covers the Dow
+    30 and Developer the S&P 500; Growth and above cover the full corpus of
+    roughly 15,500 filers. A company outside your plan's coverage returns{' '}
+    <code>403 FEATURE_NOT_AVAILABLE</code> rather than an empty result, with{' '}
+    <code>details.required_tier</code> naming the plan that includes it.
+  </p>
+</Note>
 
 ## 429 Handling
 
-When your client is throttled, the API returns HTTP `429`.
+When your client is throttled, the API returns HTTP `429` with a `Retry-After`
+header and the standard [error envelope](/errors).
 
 Recommended handling:
 
-1. stop issuing new requests for that route or worker
-2. back off before retrying
+1. stop issuing new requests for that endpoint class
+2. wait for `Retry-After` seconds
 3. resume with bounded concurrency rather than a burst retry
+
+A `429` is a backoff signal, not a failure. Do not treat it as a permanent
+error, and do not retry immediately — that consumes the next window before your
+own work reaches it.
 
 ## Client Strategy
 
-- Prefer sequential or modestly concurrent pagination unless you have measured headroom.
-- Cache stable lookup results such as company resolution where appropriate.
-- Separate interactive traffic from large historical extraction jobs.
+- Watch `X-RateLimit-Remaining` and slow down before you are throttled.
+- Prefer sequential or modestly concurrent pagination unless you have measured
+  headroom.
+- Cache stable lookup results such as company resolution.
+- Separate interactive traffic from large historical extraction jobs, so a
+  backfill cannot throttle a user-facing request.
 
 ## Response Cost
 
@@ -46,12 +110,5 @@ request count when planning a job.
   filing can hold hundreds of kilobytes across its text blocks. Read the text
   one disclosure at a time, and use `char_count` to decide what is worth
   fetching.
-
-<Warning>
-  <p>
-    Do not hardcode assumptions about rate-limit header names or window sizes unless you have
-    verified them in the deployment you are integrating with.
-  </p>
-</Warning>
 
 <NextSteps currentPath="/rate-limits" />
