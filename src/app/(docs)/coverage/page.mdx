@@ -10,6 +10,7 @@ export const metadata = createDocMetadata({
 export const sections = [
   { title: 'Check Coverage First', id: 'check-coverage-first' },
   { title: 'Company Coverage', id: 'company-coverage' },
+  { title: 'Reading the Coverage Response', id: 'reading-the-coverage-response' },
   { title: 'Metric Coverage', id: 'metric-coverage' },
   { title: 'Data-Quality Issues', id: 'data-quality-issues' },
   { title: 'Reconciliation', id: 'reconciliation' },
@@ -70,6 +71,50 @@ curl -X GET "https://api.arche.fi/v1/edgar/companies/0000320193/completeness" \
   -H "X-Request-ID: $(uuidgen)" \
   -H "Accept: application/json"
 ```
+
+## Reading the Coverage Response
+
+Two fields mean something narrower than their names suggest, and both are easy
+to misread as a quality score.
+
+<Properties>
+  <Property name="core_metric_completeness" type="decimal 0–1">
+    The share of **expected periods** that hold at least one core metric. It
+    measures whether a period was populated at all, not how many metrics it
+    contains or how complete any statement is. A company with one metric in
+    every period scores 1.0.
+  </Property>
+  <Property name="annual_reporting_continuous" type="boolean">
+    Whether every annual period across the company's own reporting life is
+    present, tolerating a single year still in progress. This is the field to
+    use for "are there gaps in this filer's history", and the one behind the
+    published gap-free figure.
+  </Property>
+  <Property name="quarterly_periods_expected" type="integer">
+    Three per fiscal year, not four. A fourth quarter is not separately filed —
+    it is derived from the 10-K — so a denominator of four would mark every
+    complete filer incomplete. Companies that file no 10-Q at all, such as
+    foreign private issuers on 20-F or 40-F, expect none.
+  </Property>
+  <Property name="annual_periods_expected" type="integer">
+    One per fiscal year across the company's covered span.
+  </Property>
+</Properties>
+
+The `*_populated` counters pair with each `*_expected` field, and the
+per-statement ratios — `income_statement_completeness`,
+`balance_sheet_completeness`, `cash_flow_statement_completeness` — report the
+same period-level measure for one statement type.
+
+<Warning>
+  <p>
+    Do not rank companies by <code>core_metric_completeness</code> and treat the
+    bottom as poorly covered. A low value usually means the filer reports fewer
+    periods than a full span would imply — a recent IPO, a changed fiscal
+    calendar, a company that files annually only — not that the data is thin.
+    Use <code>annual_reporting_continuous</code> to ask about gaps.
+  </p>
+</Warning>
 
 ## Metric Coverage
 

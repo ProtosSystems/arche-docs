@@ -91,18 +91,102 @@ def _diff(published: dict[str, Any], reference: dict[str, Any]) -> list[str]:
         for code in sorted(_response_codes(pub) - _response_codes(ref)):
             findings.append(f"{key}: response {code} no longer served")
 
-        for field in ("summary", "description", "operationId"):
-            if (pub.get(field) or "") != (ref.get(field) or ""):
-                findings.append(f"{key}: {field} changed upstream")
+        # Parameters and response codes are called out above for readability.
+        # Everything else in the operation - request bodies, response schema
+        # references, descriptions - is compared structurally, because naming
+        # each field to check is how drift goes unnoticed.
+        findings.extend(_deep_findings(key, pub, ref, skip_keys={"parameters", "responses"}))
 
-    pub_schemas = set((published.get("components") or {}).get("schemas") or {})
-    ref_schemas = set((reference.get("components") or {}).get("schemas") or {})
-    for name in sorted(ref_schemas - pub_schemas):
+    pub_schemas = (published.get("components") or {}).get("schemas") or {}
+    ref_schemas = (reference.get("components") or {}).get("schemas") or {}
+    for name in sorted(set(ref_schemas) - set(pub_schemas)):
         findings.append(f"schema added upstream: {name}")
-    for name in sorted(pub_schemas - ref_schemas):
+    for name in sorted(set(pub_schemas) - set(ref_schemas)):
         findings.append(f"schema no longer served: {name}")
 
+    # Compare schema bodies, not just their names. A response field added
+    # upstream, a field description corrected, or a field becoming optional all
+    # live inside the schema body and are invisible to a name-only comparison.
+    for name in sorted(set(pub_schemas) & set(ref_schemas)):
+        findings.extend(_deep_findings(f"schema {name}", pub_schemas[name], ref_schemas[name]))
+
     return findings
+
+
+def _deep_findings(
+    label: str,
+    published: Any,
+    reference: Any,
+    *,
+    skip_keys: set[str] | None = None,
+    path: str = "",
+    depth: int = 0,
+) -> list[str]:
+    """Report every structural difference between two spec fragments.
+
+    Reported from the published schema's point of view: "added upstream" means
+    the API serves it and the published copy does not.
+    """
+    if depth > 12:
+        return []
+    findings: list[str] = []
+    where = f"{label}{path}"
+
+    if type(published) is not type(reference):
+        return [f"{where}: type changed upstream ({_name(published)} -> {_name(reference)})"]
+
+    if isinstance(published, dict):
+        assert isinstance(reference, dict)
+        for key in sorted(set(published) | set(reference)):
+            if skip_keys and depth == 0 and key in skip_keys:
+                continue
+            if key not in published:
+                findings.append(f"{where}.{key}: added upstream")
+            elif key not in reference:
+                findings.append(f"{where}.{key}: no longer served")
+            else:
+                findings.extend(
+                    _deep_findings(
+                        label,
+                        published[key],
+                        reference[key],
+                        path=f"{path}.{key}",
+                        depth=depth + 1,
+                    )
+                )
+        return findings
+
+    if isinstance(published, list):
+        assert isinstance(reference, list)
+        # Order is not meaningful for `required`, `enum`, and similar lists.
+        if all(isinstance(item, str) for item in published + reference):
+            for item in sorted(set(reference) - set(published)):
+                findings.append(f"{where}: {item!r} added upstream")
+            for item in sorted(set(published) - set(reference)):
+                findings.append(f"{where}: {item!r} no longer served")
+            return findings
+        if len(published) != len(reference):
+            return [f"{where}: {len(published)} entries upstream serves {len(reference)}"]
+        for index, (pub_item, ref_item) in enumerate(zip(published, reference)):
+            findings.extend(
+                _deep_findings(
+                    label, pub_item, ref_item, path=f"{path}[{index}]", depth=depth + 1
+                )
+            )
+        return findings
+
+    if published != reference:
+        findings.append(f"{where}: changed upstream ({_truncate(published)} -> {_truncate(reference)})")
+    return findings
+
+
+def _name(value: Any) -> str:
+    return type(value).__name__
+
+
+def _truncate(value: Any, limit: int = 60) -> str:
+    text = repr(value)
+    return text if len(text) <= limit else f"{text[:limit]}..."
 
 
 def _reference_from_arche_api(root: Path) -> dict[str, Any]:

@@ -14533,7 +14533,12 @@
           "core_metric_completeness": {
             "type": "string",
             "title": "Core Metric Completeness",
-            "description": "Core metric completeness ratio."
+            "description": "Share of expected periods holding at least one core metric, as a decimal string. This is period coverage, not the share of metrics populated within a period."
+          },
+          "annual_reporting_continuous": {
+            "type": "boolean",
+            "title": "Annual Reporting Continuous",
+            "description": "Whether every annual period across this company's own reporting life is populated, allowing one unfilled year at the end. Terminal gaps do not count: a company that stopped filing is judged on the life it had. Quarterly periods are excluded."
           },
           "filing_count": {
             "type": "integer",
@@ -14592,6 +14597,7 @@
           "balance_sheet_completeness",
           "cash_flow_statement_completeness",
           "core_metric_completeness",
+          "annual_reporting_continuous",
           "filing_count",
           "statement_version_count",
           "restatement_count"
@@ -14685,7 +14691,7 @@
               }
             ],
             "title": "Active From",
-            "description": "Inclusive effective start date."
+            "description": "Inclusive start of the mapping as observed, not the date the ticker began trading. The SEC ticker file carries no history, so this is the date the mapping was first seen in it: for almost every row that is an ingestion date, and it must not be read as a listing date or used to answer what a company traded as at an earlier time."
           },
           "active_to": {
             "anyOf": [
@@ -14698,7 +14704,7 @@
               }
             ],
             "title": "Active To",
-            "description": "Inclusive effective end date."
+            "description": "Inclusive end of the mapping, set only when a later load showed the mapping had gone. An open end means the mapping was present at the last load, not that it has been continuously active."
           },
           "is_active": {
             "type": "boolean",
